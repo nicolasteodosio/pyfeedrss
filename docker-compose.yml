@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  postgres:
+    build: ./docker/postgres
+    volumes:
+      - data_postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "pyfeedrss"
+      POSTGRES_PASSWORD: "pyfeedrss"
+      POSTGRES_DB: "pyfeedrss"
+    ports:
+      - "5432:5432"
+
+volumes:
+  data_postgres:
+    driver: local
