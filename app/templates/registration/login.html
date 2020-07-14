@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %} {% load i18n %} {{% load crispy_forms_tags %}
+{% block head_title %}{% trans "Sign In" %}{% endblock %}
+{% trans "Sign In" %}
+
+{% csrf_token %} {{ form|crispy }} {% if redirect_field_value %} {% endif %} {% trans "Forgot Password?" %}
+{% trans "Sign In" %}
