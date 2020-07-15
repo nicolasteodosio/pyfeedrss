@@ -17,7 +17,7 @@ import environ
 
 env = environ.Env()
 
-ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent
+ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 environ.Env.read_env(str(ROOT_DIR / ".env"))
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
