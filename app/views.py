@@ -1,7 +1,10 @@
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
+
+from app.forms import AddFeedForm
 
 
 def signup(request: HttpRequest) -> HttpResponse:
@@ -34,3 +37,17 @@ def home(request: HttpRequest) -> HttpResponse:
         rendered home page
     """
     return render(request, "home.html")
+
+
+@login_required()
+def add_feed(request: HttpRequest) -> HttpResponse:
+    if request.method == "POST":
+        form = AddFeedForm(request.POST)
+        if form.is_valid():
+            url = form.cleaned_data.get("url")
+            alias = form.cleaned_data.get("alias")
+            print(url)
+            print(alias)
+    else:
+        form = AddFeedForm()
+    return render(request, "add_feed.html", {"form": form})
