@@ -1,7 +1,11 @@
-{% extends "base.html" %}
-{% load crispy_forms_filters %} {% load i18n %} {{% load crispy_forms_tags %}
-{% block head_title %}{% trans "Sign In" %}{% endblock %}
-{% trans "Sign In" %}
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
 
-{% csrf_token %} {{ form|crispy }} {% if redirect_field_value %} {% endif %} {% trans "Forgot Password?" %}
-{% trans "Sign In" %}
+{% block content %}
+    <h2>Log in</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+{% endblock %}
