@@ -5,6 +5,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 
 from app.forms import AddFeedForm
+from app.tasks import parse_feed
 
 
 def signup(request: HttpRequest) -> HttpResponse:
@@ -41,13 +42,17 @@ def home(request: HttpRequest) -> HttpResponse:
 
 @login_required()
 def add_feed(request: HttpRequest) -> HttpResponse:
+    """
+
+    :param request:
+    :return:
+    """
     if request.method == "POST":
         form = AddFeedForm(request.POST)
         if form.is_valid():
             url = form.cleaned_data.get("url")
             alias = form.cleaned_data.get("alias")
-            print(url)
-            print(alias)
+            parse_feed(url, alias)
     else:
         form = AddFeedForm()
     return render(request, "add_feed.html", {"form": form})
