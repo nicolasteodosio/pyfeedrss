@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "crispy_forms",
     "compressor",
+    "django_dramatiq",
 ]
 
 MIDDLEWARE = [
@@ -124,3 +125,20 @@ STATIC_URL = "/static/"
 STATIC_ROOT = str(ROOT_DIR / "staticfiles")
 
 CRISPY_TEMPLATE_PACK = "bootstrap4"
+
+
+# Dramatiq
+
+DRAMATIQ_BROKER = {
+    "BROKER": "dramatiq.brokers.redis.RedisBroker",
+    "OPTIONS": {"url": env("DRAMATIQ_BROKER_URL")},
+    "MIDDLEWARE": [
+        "dramatiq.middleware.Prometheus",
+        "dramatiq.middleware.AgeLimit",
+        "dramatiq.middleware.TimeLimit",
+        "dramatiq.middleware.Callbacks",
+        "dramatiq.middleware.Retries",
+        "django_dramatiq.middleware.AdminMiddleware",
+        "django_dramatiq.middleware.DbConnectionsMiddleware",
+    ],
+}
