@@ -15,3 +15,6 @@ class UserRelItem(BaseModel):
     feed = models.ForeignKey(Feed, on_delete=models.DO_NOTHING)
     kind = models.CharField("Kind", max_length=50, choices=UserRelItemKind.choices)
     content = models.TextField("Content", null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.kind}"
