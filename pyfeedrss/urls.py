@@ -18,13 +18,14 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.urls import include, path
 
-from app import views
+from app.views import common, feed
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    url(r"^home/$", views.home, name="home"),
-    url(r"^signup/$", views.signup, name="signup"),
-    url(r"^add_feed/$", views.add_feed, name="add_feed"),
+    url(r"^home/$", common.home, name="home"),
+    url(r"^signup/$", common.signup, name="signup"),
+    url(r"^feed/add$", feed.add, name="add_feed"),
+    url(r"^feed/list$", feed.list, name="list_feed"),
     path("accounts/", include("django.contrib.auth.urls")),
 ]
 
