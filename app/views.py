@@ -52,7 +52,7 @@ def add_feed(request: HttpRequest) -> HttpResponse:
         if form.is_valid():
             url = form.cleaned_data.get("url")
             alias = form.cleaned_data.get("alias")
-            parse_feed(url, alias)
+            parse_feed(url, alias, request.user.id)
     else:
         form = AddFeedForm()
     return render(request, "add_feed.html", {"form": form})
