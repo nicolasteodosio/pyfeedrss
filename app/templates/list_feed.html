@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div id="accordion">
+    <h2> Followed </h2>
+    {% for feed in feeds_followed %}
+      <div class="card">
+        <div class="card-header" id="{{ feed.id }}">
+          <h5 class="mb-0">
+            <button class="btn btn-link" data-toggle="collapse" data-target="#{{ feed.id }}" aria-expanded="true" aria-controls="{{ feed.id }}">
+                {{ feed.title }}
+            </button>
+          </h5>
+        </div>
+
+        <div id="{{ feed.id }}" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+          <div class="card-body">
+              <p class="card-text"><small>Last build date: {{ feed.last_build_date }}</small></p>
+              {{ feed.description }}
+          </div>
+        </div>
+      </div>
+    {%  endfor %}
+    {% if feeds_unfollowed %}
+        <h2> Unfollowed </h2>
+    {% endif %}
+    {% for feed in feeds_unfollowed %}
+      <div class="card">
+        <div class="card-header" id="{{ feed.id }}">
+          <h5 class="mb-0">
+            <button class="btn btn-link" data-toggle="collapse" data-target="#{{ feed.id }}" aria-expanded="true" aria-controls="{{ feed.id }}">
+                {{ feed.title }}
+            </button>
+          </h5>
+        </div>
+
+        <div id="{{ feed.id }}" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+          <div class="card-body">
+              <p class="card-text"><small>Last build date: {{ feed.last_build_date }}</small></p>
+              {{ feed.description }}
+          </div>
+        </div>
+      </div>
+    {%  endfor %}
+    </div>
+{%  endblock %}
