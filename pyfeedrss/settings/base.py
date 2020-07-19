@@ -18,6 +18,7 @@ import environ
 env = environ.Env()
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
+APPS_DIR = ROOT_DIR / "app"
 environ.Env.read_env(str(ROOT_DIR / ".env"))
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "debug_toolbar",
     "crispy_forms",
@@ -61,6 +63,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "pyfeedrss.urls"
@@ -123,6 +126,11 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = str(ROOT_DIR / "staticfiles")
+STATICFILES_DIRS = [str(APPS_DIR / "static")]
+STATICFILES_FINDERS = [
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+]
 
 CRISPY_TEMPLATE_PACK = "bootstrap4"
 
