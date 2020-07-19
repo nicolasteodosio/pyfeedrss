@@ -14,3 +14,15 @@ class AddFeedForm(forms.Form):
         self.helper.form_method = "post"
 
         self.helper.add_input(Submit("submit", "Submit"))
+
+
+class AddCommentForm(forms.Form):
+    comment = forms.CharField(max_length=140, widget=forms.Textarea())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_id = "id-addCommentForm"
+        self.helper.form_method = "post"
+
+        self.helper.add_input(Submit("submit", "Submit"))
