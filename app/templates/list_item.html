@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div id="accordion">
+    <h2> {{ feed.title }} </h2>
+    {% for item in items %}
+      <div class="card">
+        <div class="card-header" id="{{ item.id }}">
+          <h5 class="mb-0">
+            <button class="btn btn-link" data-toggle="collapse" data-target="#{{ item.id }}" aria-expanded="true" aria-controls="{{ item.id }}">
+                {{ item.title }}
+            </button>
+          </h5>
+        </div>
+
+        <div id="{{ feed.id }}" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+          <div class="card-body">
+              <span>{{ item.descritpion | safe}}</span>
+              <p class="card-text"><small>Published at: {{ item.published_at }}</small> <a href="{{ item.link }}" class="badge badge-info">Link</a></p>
+          </div>
+        </div>
+      </div>
+    {%  endfor %}
+    </div>
+{%  endblock %}
