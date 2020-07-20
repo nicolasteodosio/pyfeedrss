@@ -28,7 +28,7 @@ urlpatterns = [
     url(r"^feed/list/$", feed.list, name="list_feed"),
     path("feed/<int:feed_id>/item/", item.list, name="list_item"),
     path("item/<int:item_id>/comment/", item.add_comment, name="add_comment"),
-    path("item/<int:item_id>/read/", item.mark_as_read, name="read"),
+    url("item/read/", item.mark_as_read, name="read"),
     path("accounts/", include("django.contrib.auth.urls")),
 ]
 
