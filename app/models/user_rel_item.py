@@ -10,6 +10,7 @@ from app.models.item import Item
 class UserRelItemKind(DjangoChoices):
     comment = ChoiceItem("comment", "Comment")
     read = ChoiceItem("read", "Read")
+    favorite = ChoiceItem("favorite", "Favorite")
 
 
 class UserCommentItemManager(models.Manager):
