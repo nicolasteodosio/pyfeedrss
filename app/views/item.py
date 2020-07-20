@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from app.forms import AddCommentForm
@@ -47,13 +47,20 @@ def add_comment(request: HttpRequest, item_id: int) -> HttpResponse:
 
 
 @login_required()
-def mark_as_read(request: HttpRequest, item_id: int) -> None:
+def mark_as_read(request: HttpRequest) -> JsonResponse:
     """
 
     :param request:
-    :param item_id:
     :return:
     """
-    UserRelItem.objects.create(
-        user_id=request.user.id, item_id=item_id, kind=UserRelItemKind.read
-    )
+    data = {}
+    try:
+        item_id = request.GET.get("itemId", None)
+        UserRelItem.objects.create(
+            user_id=request.user.id, item_id=item_id, kind=UserRelItemKind.read
+        )
+        data["sucess"] = "Item marked as read."
+    except Exception:
+        data["error"] = "Something went wrong while marking item as read."
+    finally:
+        return JsonResponse(data)
