@@ -60,7 +60,6 @@ def mark_as_read(request: HttpRequest) -> JsonResponse:
             user_id=request.user.id, item_id=item_id, kind=UserRelItemKind.read
         )
         data["sucess"] = "Item marked as read."
-    except Exception:
-        data["error"] = "Something went wrong while marking item as read."
-    finally:
         return JsonResponse(data)
+    except Exception as e:
+        raise e
