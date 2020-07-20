@@ -22,6 +22,7 @@ class UserFollowFeed(BaseModel):
     disabled_at = models.DateTimeField("Disabled at", null=True)
     unfollowed = UserUnFollowFeedManager()
     followed = UserFollowFeedManager()
+    objects = models.Manager()
 
     def __str__(self):
         return f"{self.user}: {self.feed}"
