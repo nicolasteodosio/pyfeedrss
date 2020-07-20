@@ -27,6 +27,9 @@ class UserRelItem(BaseModel):
     item = models.ForeignKey(Item, on_delete=models.DO_NOTHING)
     kind = models.CharField("Kind", max_length=50, choices=UserRelItemKind.choices)
     content = models.TextField("Content", null=True, blank=True)
+    read = UserReadItemManager()
+    commented = UserCommentItemManager()
+    objects = models.Manager()
 
     def __str__(self) -> str:
         return f"{self.kind}"
