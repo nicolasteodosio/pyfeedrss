@@ -17,10 +17,13 @@ def list(request: HttpRequest, feed_id: int) -> HttpResponse:
     :param feed_id:
     :return:
     """
-    feed = Feed.objects.get(id=feed_id)
-    items = Item.objects.filter(feed_id=feed_id)
+    try:
+        feed = Feed.objects.get(id=feed_id)
+        items = Item.objects.filter(feed_id=feed_id)
 
-    return render(request, "list_item.html", {"items": items, "feed": feed},)
+        return render(request, "list_item.html", {"items": items, "feed": feed},)
+    except Exception as e:
+        raise e
 
 
 @login_required()
