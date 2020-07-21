@@ -12,18 +12,27 @@ def signup(request: HttpRequest) -> HttpResponse:
     :return: HttpResponse
         rendered signup page
     """
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get("username")
-            password = form.cleaned_data.get("password")
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            return redirect("home")
-    else:
-        form = UserCreationForm()
-    return render(request, "registration/signup.html", {"form": form})
+    try:
+        if request.method == "POST":
+            form = UserCreationForm(request.POST)
+            if form.is_valid():
+                form.save()
+                username = form.cleaned_data.get("username")
+                password = form.cleaned_data.get("password1")
+                user = authenticate(username=username, password=password)
+                login(request, user)
+                return redirect("home")
+            else:
+                return render(
+                    request,
+                    "registration/signup.html",
+                    {"form": form, "messages": form.errors},
+                )
+        else:
+            form = UserCreationForm()
+        return render(request, "registration/signup.html", {"form": form})
+    except Exception as e:
+        raise e
 
 
 def home(request: HttpRequest) -> HttpResponse:
