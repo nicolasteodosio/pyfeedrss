@@ -68,3 +68,22 @@ def mark_as_read(request: HttpRequest) -> JsonResponse:
         return JsonResponse(data)
     except Exception as e:
         raise e
+
+
+@login_required()
+def mark_as_favorite(request: HttpRequest) -> JsonResponse:
+    """
+
+    :param request:
+    :return:
+    """
+    data = {}
+    try:
+        item_id = request.GET.get("itemId")
+        UserRelItem.objects.create(
+            user_id=request.user.id, item_id=item_id, kind=UserRelItemKind.favorite
+        )
+        data["sucess"] = "Item marked as favorite."
+        return JsonResponse(data)
+    except Exception as e:
+        raise e

@@ -29,6 +29,7 @@ urlpatterns = [
     path("feed/<int:feed_id>/item/", item.list, name="list_item"),
     path("item/<int:item_id>/comment/", item.add_comment, name="add_comment"),
     url("item/read/", item.mark_as_read, name="read"),
+    url("item/favorite/", item.mark_as_favorite, name="favorite"),
     path("accounts/", include("django.contrib.auth.urls")),
 ]
 
