@@ -58,7 +58,7 @@ def mark_as_read(request: HttpRequest) -> JsonResponse:
     """
     data = {}
     try:
-        item_id = request.GET.get("itemId", None)
+        item_id = request.GET.get("itemId")
         UserRelItem.objects.create(
             user_id=request.user.id, item_id=item_id, kind=UserRelItemKind.read
         )
