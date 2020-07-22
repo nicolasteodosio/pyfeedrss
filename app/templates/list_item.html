@@ -9,6 +9,9 @@
             <button class="btn btn-link" data-toggle="collapse" data-target="#{{ item.id }}" aria-expanded="true" aria-controls="{{ item.id }}">
                 {{ item.title }}
             </button>
+              <button type="button" class="btn btn-default btn-lg favorite" data-id="{{ item.id }}" style="float: right">
+                <i class="fa fa-star" aria-hidden="true"></i> Favorite
+              </button>
           </h5>
         </div>
 
@@ -44,6 +47,25 @@
         var itemId = $(this).data('id')
           $.ajax({
             url: '{% url 'read' %}',
+            data: {"itemId": itemId},
+            dataType: 'json',
+            success: function (data) {
+              if (data.sucess) {
+                alert(data.sucess);
+                window.location.reload(false);
+              }
+            },
+            error: function (data) {
+                if (data.error) {
+                alert(data.error);
+              }
+            }
+          });
+    });
+    $(".favorite").click(function () {
+        var itemId = $(this).data('id')
+          $.ajax({
+            url: '{% url 'favorite' %}',
             data: {"itemId": itemId},
             dataType: 'json',
             success: function (data) {
