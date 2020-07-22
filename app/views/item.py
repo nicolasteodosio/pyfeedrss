@@ -44,6 +44,8 @@ def add_comment(request: HttpRequest, item_id: int) -> HttpResponse:
                 content=comment,
                 kind=UserRelItemKind.comment,
             )
+        else:
+            render(request, "add_comment.html", {"form": form, "messages": form.errors})
     else:
         form = AddCommentForm()
     return render(request, "add_comment.html", {"form": form})

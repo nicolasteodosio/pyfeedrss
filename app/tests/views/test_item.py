@@ -60,3 +60,38 @@ def test_mark_as_read_view(logged_client):
             user_id=user_id_, item_id=item.id, kind=UserRelItemKind.read
         ).count()
     )
+
+
+def test_add_comment_view_unlogged_user(client):
+    response = client.get(resolve_url("add_comment", item_id=3))
+    assert response.status_code == 302
+    assert response.url == "/accounts/login/?next=/item/3/comment/"
+
+
+def test_add_comment_view_logged_user_get_method(logged_client):
+    response = logged_client.get(resolve_url("add_comment", item_id=3))
+    assert response.status_code == 200
+    assert response.resolver_match.url_name == "add_comment"
+
+
+def test_add_comment_view_logged_user_form_invalid(logged_client):
+    response = logged_client.post(resolve_url("add_comment", item_id=3), data={})
+    assert response.status_code == 200
+    assert response.resolver_match.url_name == "add_comment"
+    assert response.context["messages"] == {"comment": ["This field is required."]}
+
+
+def test_add_comment_view(logged_client):
+    item = mommy.make(Item)
+    response = logged_client.post(
+        resolve_url("add_comment", item_id=item.id), data={"comment": "Test"}
+    )
+    user_id_ = int(logged_client.session._session["_auth_user_id"])
+    assert response.status_code == 200
+    assert response.resolver_match.url_name == "add_comment"
+    assert (
+        1
+        == UserRelItem.objects.filter(
+            user_id=user_id_, item_id=item.id, kind=UserRelItemKind.comment
+        ).count()
+    )
