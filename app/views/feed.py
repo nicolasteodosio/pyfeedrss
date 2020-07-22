@@ -1,11 +1,11 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from app.forms import AddFeedForm
 from app.models.feed import Feed
 from app.models.user_follow_feed import UserFollowFeed
-from app.tasks import parse_feed
+from app.tasks import parse_feed, update_feed
 
 
 @login_required()
@@ -48,3 +48,13 @@ def list(request: HttpRequest) -> HttpResponse:
         "list_feed.html",
         {"feeds_followed": feeds_followed, "feeds_unfollowed": feeds_unfollowed},
     )
+
+
+@login_required()
+def update(request: HttpRequest) -> JsonResponse:
+    try:
+        feed_id = request.GET.get("feedId")
+        update_feed(feed_id)
+        return JsonResponse({"data": "success"})
+    except Exception as e:
+        raise e

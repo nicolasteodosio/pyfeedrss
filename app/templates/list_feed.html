@@ -11,12 +11,20 @@
             <button class="btn btn-link" data-toggle="collapse" data-target="#{{ feed.id }}" aria-expanded="true" aria-controls="{{ feed.id }}">
                 {{ feed.title }}
             </button>
+              <div style="float: right">
+                  <button type="button" class="btn btn-info"> Update</button>
+                  <a href="{%  url 'list_item' feed.id %}" ><button type="button" class="btn btn-primary" >
+                      Unread <span class="badge badge-light">{{ feed.unread_count }}</span>
+                      <span class="sr-only">unread items</span>
+                  </button></a>
+              </div>
           </h5>
+
         </div>
 
         <div id="{{ feed.id }}" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
           <div class="card-body">
-              <p class="card-text"><small>Last build date: {{ feed.last_build_date }}</small></p>
+              <p class="card-text"><small>Last build date: {{ feed.last_build_date }}</small>  </p>
               {{ feed.description }}
           </div>
         </div>
