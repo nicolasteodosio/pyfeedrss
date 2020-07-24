@@ -9,9 +9,15 @@
             <button class="btn btn-link" data-toggle="collapse" data-target="#{{ item.id }}" aria-expanded="true" aria-controls="{{ item.id }}">
                 {{ item.title }}
             </button>
-              <button type="button" class="btn btn-default btn-lg favorite" data-id="{{ item.id }}" style="float: right">
-                <i class="fa fa-star" aria-hidden="true"></i> Favorite
-              </button>
+              {%  if item.favorite %}
+                  <button type="button" title="Unfavorite" class="btn btn-default btn-lg favorite" data-id="{{ item.id }}" style="float: right">
+                    <i class="fa fa-star" aria-hidden="true" style="color: gold"></i>
+                  </button>
+              {% else %}
+                  <button type="button" title="Favorite" class="btn btn-default btn-lg favorite" data-id="{{ item.id }}" style="float: right">
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                  </button>
+              {%  endif %}
           </h5>
         </div>
 

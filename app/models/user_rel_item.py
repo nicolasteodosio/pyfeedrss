@@ -23,6 +23,11 @@ class UserReadItemManager(models.Manager):
         return super().get_queryset().filter(kind=UserRelItemKind.read)
 
 
+class UserFavoriteItemManager(models.Manager):
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter(kind=UserRelItemKind.favorite)
+
+
 class UserRelItem(BaseModel):
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     item = models.ForeignKey(Item, on_delete=models.DO_NOTHING)
@@ -30,6 +35,7 @@ class UserRelItem(BaseModel):
     content = models.TextField("Content", null=True, blank=True)
     read = UserReadItemManager()
     commented = UserCommentItemManager()
+    favorite = UserFavoriteItemManager()
     objects = models.Manager()
 
     def __str__(self) -> str:

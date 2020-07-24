@@ -45,3 +45,13 @@ class Item(BaseModel):
 
             return UserRelItem.commented.get(item_id=self.id).content
         return None
+
+    @property
+    def favorite(self):
+        """
+
+        :return:
+        """
+        from app.models.user_rel_item import UserRelItem
+
+        return UserRelItem.favorite.filter(item_id=self.id).exists()
