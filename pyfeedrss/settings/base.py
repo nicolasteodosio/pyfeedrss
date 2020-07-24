@@ -138,7 +138,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap4"
 # Dramatiq
 
 DRAMATIQ_BROKER = {
-    "BROKER": "dramatiq.brokers.redis.RedisBroker",
+    "BROKER": "dramatiq.brokers.rabbitmq.RabbitmqBroker",
     "OPTIONS": {"url": env("DRAMATIQ_BROKER_URL")},
     "MIDDLEWARE": [
         "dramatiq.middleware.Prometheus",
