@@ -18,3 +18,5 @@ DRAMATIQ_BROKER = {
         "django_dramatiq.middleware.DbConnectionsMiddleware",
     ],
 }
+
+DRAMATIQ_MAX_RETRIES = 0
