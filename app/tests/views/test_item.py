@@ -1,6 +1,6 @@
 import pytest
 from django.shortcuts import resolve_url
-from model_mommy import mommy
+from model_bakery import baker
 
 from app.models import Feed, Item, UserRelItem
 from app.models.user_rel_item import UserRelItemKind
@@ -18,8 +18,8 @@ def test_item_list_view_exception(logged_client):
 
 
 def test_item_list_view(logged_client):
-    feed = mommy.make(Feed)
-    mommy.make(Item, feed_id=feed.id)
+    feed = baker.make(Feed)
+    baker.make(Item, feed_id=feed.id)
     response = logged_client.get(resolve_url("list_item", feed_id=feed.id))
     assert response.status_code == 200
     assert response.resolver_match.url_name == "list_item"
@@ -28,7 +28,7 @@ def test_item_list_view(logged_client):
 
 
 def test_item_list_view_items_empty(logged_client):
-    feed = mommy.make(Feed)
+    feed = baker.make(Feed)
     response = logged_client.get(resolve_url("list_item", feed_id=feed.id))
     assert response.status_code == 200
     assert response.resolver_match.url_name == "list_item"
@@ -48,7 +48,7 @@ def test_mark_as_read_view_exception(logged_client):
 
 
 def test_mark_as_read_view(logged_client):
-    item = mommy.make(Item)
+    item = baker.make(Item)
     response = logged_client.get(resolve_url("read"), data={"itemId": item.id})
     user_id_ = int(logged_client.session._session["_auth_user_id"])
     assert response.status_code == 200
@@ -82,7 +82,7 @@ def test_add_comment_view_logged_user_form_invalid(logged_client):
 
 
 def test_add_comment_view(logged_client):
-    item = mommy.make(Item)
+    item = baker.make(Item)
     response = logged_client.post(
         resolve_url("add_comment", item_id=item.id), data={"comment": "Test"}
     )

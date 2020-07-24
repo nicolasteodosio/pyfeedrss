@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 from django.shortcuts import resolve_url
-from model_mommy import mommy
+from model_bakery import baker
 
 from app.models import Feed, UserFollowFeed
 
@@ -23,10 +23,10 @@ def test_feed_list_view_empty(logged_client):
 
 @pytest.mark.django_db
 def test_feed_list_view(logged_client):
-    feeds = mommy.make(Feed, _quantity=2)
+    feeds = baker.make(Feed, _quantity=2)
     user_id_ = int(logged_client.session._session["_auth_user_id"])
-    mommy.make(UserFollowFeed, feed_id=feeds[0].id, user_id=user_id_)
-    mommy.make(
+    baker.make(UserFollowFeed, feed_id=feeds[0].id, user_id=user_id_)
+    baker.make(
         UserFollowFeed,
         feed_id=feeds[1].id,
         user_id=user_id_,
