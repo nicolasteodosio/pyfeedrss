@@ -16,6 +16,14 @@ services:
     command: redis-server
     ports:
       - "6379:6379"
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=pyfeed
+      - RABBITMQ_DEFAULT_PASS=pyfeed
 volumes:
   data_postgres:
     driver: local

@@ -8,3 +8,4 @@ django-dramatiq==0.9.1
 redis==3.5.3
 feedparser==5.2.1
 whitenoise==5.1.0
+pika==1.1.0
