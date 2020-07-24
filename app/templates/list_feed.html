@@ -12,7 +12,7 @@
                 {{ feed.title }}
             </button>
               <div style="float: right">
-                  <button type="button" class="btn btn-info"> Update</button>
+                  <button type="button" class="btn btn-info update" data-id="{{ feed.id }}"> Update</button>
                   <a href="{%  url 'list_item' feed.id %}" ><button type="button" class="btn btn-primary" >
                       Unread <span class="badge badge-light">{{ feed.unread_count }}</span>
                       <span class="sr-only">unread items</span>
@@ -52,4 +52,26 @@
       </div>
     {%  endfor %}
     </div>
+{%  endblock %}
+{%  block extra_js %}
+    <script>
+    $(".update").click(function () {
+        var feedId = $(this).data('id')
+          $.ajax({
+            url: '{% url 'update_feed' %}',
+            data: {"feedId": feedId},
+            dataType: 'json',
+            success: function (data) {
+              if (data.sucess) {
+                alert(data.sucess);
+                window.location.reload(false);
+              }
+            },
+            error: function (data) {
+                if (data.error) {
+                alert(data.error);
+              }
+            }
+          });
+    });
 {%  endblock %}
