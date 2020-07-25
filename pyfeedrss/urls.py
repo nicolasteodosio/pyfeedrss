@@ -22,8 +22,8 @@ from app.views import feed, item, main
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    url(r"", main.home, name="home"),
     url(r"^home/$", main.home, name="home"),
-    url(r"^/$", main.home, name="home"),
     url(r"^signup/$", main.signup, name="signup"),
     url(r"^feed/add/$", feed.add, name="add_feed"),
     url(r"^feed/list/$", feed.list, name="list_feed"),
