@@ -1,11 +1,25 @@
 from datetime import datetime
+from typing import List
 
 from app.models import Item
 
 DATE_FORMAT_2 = "%a, %d %b %Y %X %Z"
 
 
-def create_items(feed_id, parsed_entries):
+def create_items(feed_id: int, parsed_entries: List) -> None:
+    """Function responsible for creating items in the database
+
+    Parameters
+    ----------
+    feed_id: int
+        Feed id
+    parsed_entries: List
+        List with entries to be created in the database
+
+    Returns
+    -------
+
+    """
     entries_to_create = []
     for entry in parsed_entries:
         entries_to_create.append(

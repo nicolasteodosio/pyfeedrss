@@ -16,12 +16,23 @@ MAX_RETRIES = settings.DRAMATIQ_MAX_RETRIES
 
 @dramatiq.actor(max_retries=MAX_RETRIES)
 def parse_feed(url: str, alias: str, user_id: int) -> None:
-    """
+    """Task responsible for parse the feed url.
+    Check if that feed is already created in dataase, if not create.
+    Call `dramatiq.actor` task follow_feed and parse_entries.
 
-    :param url:
-    :param alias:
-    :param user_id:
-    :return:
+    Parameters
+    ----------
+    url: str
+        Feed url
+
+    alias: str
+        Alias of the feed, optional.
+
+    user_id: int
+        Id of the user
+    Returns
+    -------
+
     """
     try:
         parsed = feedparser.parse(url)
@@ -45,11 +56,17 @@ def parse_feed(url: str, alias: str, user_id: int) -> None:
 
 @dramatiq.actor(max_retries=MAX_RETRIES)
 def follow_feed(feed_id: int, user_id: int) -> None:
-    """
+    """Task responsile for creating a UserFollowFeed register in database
 
-    :param feed_id:
-    :param user_id:
-    :return:
+    Parameters
+    ----------
+    feed_id: int
+        Feed id
+    user_id: int
+        User id
+    Returns
+    -------
+
     """
     try:
         UserFollowFeed.objects.create(feed_id=feed_id, user_id=user_id)
@@ -59,11 +76,18 @@ def follow_feed(feed_id: int, user_id: int) -> None:
 
 @dramatiq.actor(max_retries=MAX_RETRIES)
 def parse_entries(url: str, feed_id: int) -> None:
-    """
+    """Task responsible to parse entries from the url feed.
+    Call `create_items` to create in the dabatase
 
-    :param url:
-    :param feed_id:
-    :return:
+    Parameters
+    ----------
+    url: str
+        Url feed to get entries
+    feed_id: innt
+        Feed id
+    Returns
+    -------
+
     """
     try:
         parsed_entries = feedparser.parse(url)
@@ -75,10 +99,16 @@ def parse_entries(url: str, feed_id: int) -> None:
 
 @dramatiq.actor(max_retries=MAX_RETRIES)
 def update_feed(feed_id: int) -> None:
-    """
+    """Task responsible to check and update a feed if necessary.
+    Call `create_items` if has new item to create
 
-    :param feed_id:
-    :return:
+    Parameters
+    ----------
+    feed_id: int
+        Feed id
+    Returns
+    -------
+
     """
     try:
         feed = Feed.objects.get(id=feed_id)

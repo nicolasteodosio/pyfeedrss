@@ -11,11 +11,16 @@ from app.models.user_rel_item import UserRelItemKind
 
 @login_required()
 def list(request: HttpRequest, feed_id: int) -> HttpResponse:
-    """
+    """View to list all items from a feed.
 
-    :param request:
-    :param feed_id:
-    :return:
+    Parameters
+    ----------
+    request: HttpRequest
+    feed_id: int
+
+    Returns
+    -------
+
     """
     try:
         feed = Feed.objects.get(id=feed_id)
@@ -28,11 +33,16 @@ def list(request: HttpRequest, feed_id: int) -> HttpResponse:
 
 @login_required()
 def add_comment(request: HttpRequest, item_id: int) -> HttpResponse:
-    """
+    """View to add a private commentary for a item.
 
-    :param request:
-    :param item_id:
-    :return:
+    Parameters
+    ----------
+    request: HttpRequest
+    item_id: int
+
+    Returns
+    -------
+
     """
     if request.method == "POST":
         form = AddCommentForm(request.POST)
@@ -53,10 +63,15 @@ def add_comment(request: HttpRequest, item_id: int) -> HttpResponse:
 
 @login_required()
 def mark_as_read(request: HttpRequest) -> JsonResponse:
-    """
+    """View to mark a item as read.
 
-    :param request:
-    :return:
+    Parameters
+    ----------
+    request: HttpRequest
+
+    Returns
+    -------
+
     """
     data = {}
     try:
@@ -72,10 +87,15 @@ def mark_as_read(request: HttpRequest) -> JsonResponse:
 
 @login_required()
 def mark_as_favorite(request: HttpRequest) -> JsonResponse:
-    """
+    """View to mark a item as favorite.
 
-    :param request:
-    :return:
+    Parameters
+    ----------
+    request: HttpRequest
+
+    Returns
+    -------
+
     """
     data = {}
     try:

@@ -10,11 +10,19 @@ from app.tasks import parse_feed, update_feed
 
 @login_required()
 def add(request: HttpRequest) -> HttpResponse:
+    """View for adding new feed for a user.
+    Use AddFeedForm, with `url` and `alias` parameters, and `alias` being optional.
+    if is valid, send a message to a dramatiq.actor task called `parse_feed`
+
+    Parameters
+    ----------
+    request: HttpRequest
+
+    Returns
+    -------
+
     """
 
-    :param request:
-    :return:
-    """
     if request.method == "POST":
         form = AddFeedForm(request.POST)
         if form.is_valid():
@@ -28,11 +36,17 @@ def add(request: HttpRequest) -> HttpResponse:
 
 @login_required()
 def list(request: HttpRequest) -> HttpResponse:
+    """View for listings all feeds from a user.
+
+    Parameters
+    ----------
+    request: HttpRequest
+
+    Returns
+    -------
+    render list_feed.html with the followed and unfollowed feeds from a user
     """
 
-    :param request:
-    :return:
-    """
     user_id = request.user.id
     users_follow_feed_id = UserFollowFeed.followed.filter(user_id=user_id).values_list(
         "feed_id", flat=True
@@ -52,6 +66,17 @@ def list(request: HttpRequest) -> HttpResponse:
 
 @login_required()
 def update(request: HttpRequest) -> JsonResponse:
+    """View to update a feed chosen by the user.
+    Receive `feedId` as a parameter and call a `dramatiq.actor` task `update_feed`
+
+    Parameters
+    ----------
+    request: HttpRequest
+
+    Returns
+    -------
+    JsonResponse
+    """
     try:
         feed_id = request.GET.get("feedId")
         update_feed.send(feed_id)

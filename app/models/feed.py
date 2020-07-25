@@ -4,6 +4,10 @@ from app.models.base import BaseModel
 
 
 class Feed(BaseModel):
+    """Feed model class
+
+    """
+
     title = models.CharField("Title", max_length=100)
     link = models.URLField("Link")
     description = models.TextField("Description")
@@ -14,7 +18,13 @@ class Feed(BaseModel):
         return f"{self.title}"
 
     @property
-    def unread_count(self):
+    def unread_count(self) -> int:
+        """Property to calculate the unread items of a feed
+
+        Returns
+        -------
+            An integer with the unread item count
+        """
         from app.models import Item
 
         feed_items = Item.objects.filter(feed_id=self.id)

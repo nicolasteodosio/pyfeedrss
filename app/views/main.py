@@ -5,13 +5,17 @@ from django.shortcuts import redirect, render
 
 
 def signup(request: HttpRequest) -> HttpResponse:
-    """
-    SignUp view, if user is valid and authenticated redirect to home
-    :param request:HttpRequest
+    """ SignUp view, if user is valid and authenticated redirect to home
 
-    :return: HttpResponse
-        rendered signup page
+    Parameters
+    ----------
+    request: HttpRequest
+
+    Returns
+    -------
+    rendered signup page
     """
+
     try:
         if request.method == "POST":
             form = UserCreationForm(request.POST)
@@ -37,9 +41,14 @@ def signup(request: HttpRequest) -> HttpResponse:
 
 def home(request: HttpRequest) -> HttpResponse:
     """
-    Home View
-    :param request:HttpRequest
-    :return: HttpResponse
-        rendered home page
+
+    Parameters
+    ----------
+    request: HttpRequest
+
+    Returns
+    -------
+    rendered home page
     """
+
     return render(request, "home.html")
