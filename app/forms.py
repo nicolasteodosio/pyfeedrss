@@ -2,6 +2,8 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django import forms
 
+from app.models.user_rel_item import UserRelItemKind
+
 
 class AddFeedForm(forms.Form):
     """ A form class responsible to manage the addition of new feeds
@@ -48,3 +50,13 @@ class AddCommentForm(forms.Form):
         self.helper.form_method = "post"
 
         self.helper.add_input(Submit("submit", "Submit"))
+
+
+class UpdateFeedForm(forms.Form):
+
+    feed_id = forms.IntegerField()
+
+
+class MarkItemForm(forms.Form):
+    item_id = forms.IntegerField()
+    kind = forms.ChoiceField(choices=UserRelItemKind.choices)
