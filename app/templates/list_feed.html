@@ -1,78 +1,85 @@
 {% extends 'base.html' %}
 {% block content %}
     <div id="accordion">
-    {% if feeds_followed %}
-        <h2> Followed </h2>
-    {% endif %}
-    {% for feed in feeds_followed %}
-      <div class="card">
-        <div class="card-header" id="{{ feed.id }}">
-          <h5 class="mb-0">
-            <button class="btn btn-link" data-toggle="collapse" data-target="#{{ feed.id }}" aria-expanded="true" aria-controls="{{ feed.id }}">
-                {{ feed.title }}
-            </button>
-              <div style="float: right">
-                  <button type="button" class="btn btn-info update" data-id="{{ feed.id }}"> Update</button>
-                  <a href="{%  url 'list_item' feed.id %}" ><button type="button" class="btn btn-primary" >
-                      Unread <span class="badge badge-light">{{ feed.unread_count }}</span>
-                      <span class="sr-only">unread items</span>
-                  </button></a>
-              </div>
-          </h5>
+        {% if feeds_followed %}
+            <h2> Followed </h2>
+        {% endif %}
+        {% for feed in feeds_followed %}
+            <div class="card">
+                <div class="card-header" id="{{ feed.id }}">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" data-toggle="collapse" data-target="#{{ feed.id }}"
+                                aria-expanded="true" aria-controls="{{ feed.id }}">
+                            {{ feed.title }}
+                        </button>
+                        <div style="float: right">
+                            <button type="button" class="btn btn-info update" data-id="{{ feed.id }}"> Update</button>
+                            <a href="{% url 'list_item' feed.id %}">
+                                <button type="button" class="btn btn-primary">
+                                    Unread <span class="badge badge-light">{{ feed.unread_count }}</span>
+                                    <span class="sr-only">unread items</span>
+                                </button>
+                            </a>
+                        </div>
+                    </h5>
 
-        </div>
+                </div>
 
-        <div id="{{ feed.id }}" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
-          <div class="card-body">
-              <p class="card-text"><small>Last build date: {{ feed.last_build_date }}</small>  </p>
-              {{ feed.description }}
-          </div>
-        </div>
-      </div>
-    {%  endfor %}
-    {% if feeds_unfollowed %}
-        <h2> Unfollowed </h2>
-    {% endif %}
-    {% for feed in feeds_unfollowed %}
-      <div class="card">
-        <div class="card-header" id="{{ feed.id }}">
-          <h5 class="mb-0">
-            <button class="btn btn-link" data-toggle="collapse" data-target="#{{ feed.id }}" aria-expanded="true" aria-controls="{{ feed.id }}">
-                {{ feed.title }}
-            </button>
-          </h5>
-        </div>
+                <div id="{{ feed.id }}" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                        <p class="card-text"><small>Last build date: {{ feed.last_build_date }}</small></p>
+                        {{ feed.description }}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        {% if feeds_unfollowed %}
+            <h2> Unfollowed </h2>
+        {% endif %}
+        {% for feed in feeds_unfollowed %}
+            <div class="card">
+                <div class="card-header" id="{{ feed.id }}">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" data-toggle="collapse" data-target="#{{ feed.id }}"
+                                aria-expanded="true" aria-controls="{{ feed.id }}">
+                            {{ feed.title }}
+                        </button>
+                    </h5>
+                </div>
 
-        <div id="{{ feed.id }}" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
-          <div class="card-body">
-              <p class="card-text"><small>Last build date: {{ feed.last_build_date }}</small></p>
-              {{ feed.description }}
-          </div>
-        </div>
-      </div>
-    {%  endfor %}
+                <div id="{{ feed.id }}" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                        <p class="card-text"><small>Last build date: {{ feed.last_build_date }}</small></p>
+                        {{ feed.description }}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
-{%  endblock %}
-{%  block extra_js %}
+{% endblock %}
+{% csrf_token %}
+{% block extra_js %}
     <script>
-    $(".update").click(function () {
-        var feedId = $(this).data('id')
-          $.ajax({
-            url: '{% url 'update_feed' %}',
-            data: {"feedId": feedId},
-            dataType: 'json',
-            success: function (data) {
-              if (data.sucess) {
-                alert(data.sucess);
-                window.location.reload(false);
-              }
-            },
-            error: function (data) {
-                if (data.error) {
-                alert(data.error);
-              }
-            }
-          });
-    });
+        $(".update").click(function () {
+            var feedId = $(this).data('id');
+            $.ajax({
+                url: '{% url 'update_feed' %}',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                method: "POST",
+                data: {
+                    "feed_id": feedId,
+                },
+                dataType: 'json',
+                success: function (data) {
+                    alert(data.message);
+                },
+                error: function (data) {
+                    alert(data.status); // the status code
+                    alert(data.error); // the message
+                }
+            });
+        });
     </script>
-{%  endblock %}
+{% endblock %}
