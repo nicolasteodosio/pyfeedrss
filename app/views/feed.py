@@ -4,7 +4,7 @@ from django.db.models.aggregates import Count
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 
-from app.forms import AddFeedForm
+from app.forms import AddFeedForm, UpdateFeedForm
 from app.models.feed import Feed
 from app.models.user_rel_item import UserRelItemKind
 from app.tasks import parse_feed, update_feed
@@ -80,9 +80,11 @@ def update(request: HttpRequest) -> JsonResponse:
     -------
     JsonResponse
     """
-    try:
-        feed_id = request.GET.get("feedId")
-        update_feed.send(feed_id)
-        return JsonResponse({"data": "success"})
-    except Exception as e:
-        raise e
+    if request.is_ajax and request.method == "POST":
+        form = UpdateFeedForm(request.POST)
+        if form.is_valid():
+            feed_id = form.cleaned_data.get("feed_id")
+            update_feed.send(feed_id)
+            return JsonResponse({"message": "The feed was sent to update."}, status=200)
+        return JsonResponse({"error": form.errors}, status=400)
+    return JsonResponse({"error": "An unexpected error occurred"}, status=500)
