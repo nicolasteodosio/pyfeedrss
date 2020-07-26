@@ -16,21 +16,3 @@ class Feed(BaseModel):
 
     def __str__(self) -> str:
         return f"{self.title}"
-
-    @property
-    def unread_count(self) -> int:
-        """Property to calculate the unread items of a feed
-
-        Returns
-        -------
-            An integer with the unread item count
-        """
-        from app.models import Item
-
-        feed_items = Item.objects.filter(feed_id=self.id)
-        feed_items_count = feed_items.count()
-        feed_items_read_count = 0
-        for feed_item in feed_items:
-            if feed_item.read:
-                feed_items_read_count += 1
-        return feed_items_count - feed_items_read_count
