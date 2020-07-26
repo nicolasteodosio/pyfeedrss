@@ -22,17 +22,15 @@ from app.views import feed, item, main
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    url(r"", main.home, name="home"),
     url(r"^home/$", main.home, name="home"),
     url(r"^signup/$", main.signup, name="signup"),
     url(r"^feed/add/$", feed.add, name="add_feed"),
     url(r"^feed/list/$", feed.list, name="list_feed"),
-    url(r"^feed/update/$", feed.update, name="update_feed"),
+    url(r"^feed/ajax/update/$", feed.update, name="update_feed"),
     url(r"^feed/update/all$", feed.update, name="update_all"),
     path("feed/<int:feed_id>/item/", item.list, name="list_item"),
     path("item/<int:item_id>/comment/", item.add_comment, name="add_comment"),
-    url("item/read/", item.mark_as_read, name="read"),
-    url("item/favorite/", item.mark_as_favorite, name="favorite"),
+    url("item/ajax/mark", item.mark_as_kind, name="mark_item"),
     path("accounts/", include("django.contrib.auth.urls")),
 ]
 
