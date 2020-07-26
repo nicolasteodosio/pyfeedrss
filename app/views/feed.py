@@ -31,6 +31,10 @@ def add(request: HttpRequest) -> HttpResponse:
             url = form.cleaned_data.get("url")
             alias = form.cleaned_data.get("alias")
             parse_feed.send(url, alias, request.user.id)
+        else:
+            return render(
+                request, "add_feed.html", {"form": form, "messages": form.errors}
+            )
     else:
         form = AddFeedForm()
     return render(request, "add_feed.html", {"form": form})
