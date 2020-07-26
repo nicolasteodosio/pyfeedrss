@@ -12,9 +12,14 @@ def test_item_list_view_user_not_logged(client):
     assert response.url == "/accounts/login/?next=/feed/2/item/"
 
 
+def test_item_list_view_feed_dont_exists(logged_client):
+    response = logged_client.get(resolve_url("list_item", feed_id=789456))
+    assert response.status_code == 404
+
+
 def test_item_list_view_exception(logged_client):
     with pytest.raises(Exception):
-        logged_client.get(resolve_url("list_item", feed_id=2))
+        logged_client.get(resolve_url("list_item", feed_id="error"))
 
 
 def test_item_list_view(logged_client):
@@ -36,28 +41,56 @@ def test_item_list_view_items_empty(logged_client):
     assert response.context["feed"].id == feed.id
 
 
-def test_mark_as_read_view_user_not_logged(client):
-    response = client.get(resolve_url("read"))
+def test_mark_as_kind_view_user_not_logged(client):
+    response = client.get(resolve_url("mark_item"))
     assert response.status_code == 302
-    assert response.url == "/accounts/login/?next=/item/read/"
+    assert response.url == "/accounts/login/?next=/item/ajax/mark"
 
 
-def test_mark_as_read_view_exception(logged_client):
-    with pytest.raises(Exception):
-        logged_client.get(resolve_url("read"))
+def test_mark_as_kind_view_wrong_method(logged_client):
+    response = logged_client.get(resolve_url("mark_item"))
+    assert response.json() == {"error": "An unexpected error occurred"}
+    assert response.status_code == 500
 
 
-def test_mark_as_read_view(logged_client):
+def test_mark_as_kind_view_invalid_form(logged_client):
     item = baker.make(Item)
-    response = logged_client.get(resolve_url("read"), data={"itemId": item.id})
+    response = logged_client.post(resolve_url("mark_item"), data={"item_id": item.id})
+    assert response.status_code == 400
+    assert response.resolver_match.url_name == "mark_item"
+    assert response.json()["error"] == {"kind": ["This field is required."]}
+
+
+def test_mark_as_kind_view_kind_read(logged_client):
+    item = baker.make(Item)
+    response = logged_client.post(
+        resolve_url("mark_item"), data={"item_id": item.id, "kind": "read"}
+    )
     user_id_ = int(logged_client.session._session["_auth_user_id"])
     assert response.status_code == 200
-    assert response.resolver_match.url_name == "read"
-    assert response.json()["sucess"] == "Item marked as read."
+    assert response.resolver_match.url_name == "mark_item"
+    assert response.json()["message"] == "The item was marked as read."
     assert (
         1
         == UserRelItem.objects.filter(
             user_id=user_id_, item_id=item.id, kind=UserRelItemKind.read
+        ).count()
+    )
+
+
+def test_mark_as_kind_view_kind_favorite(logged_client):
+    item = baker.make(Item)
+    response = logged_client.post(
+        resolve_url("mark_item"), data={"item_id": item.id, "kind": "favorite"}
+    )
+    user_id_ = int(logged_client.session._session["_auth_user_id"])
+    assert response.status_code == 200
+    assert response.resolver_match.url_name == "mark_item"
+    assert response.json()["message"] == "The item was marked as favorite."
+    assert (
+        1
+        == UserRelItem.objects.filter(
+            user_id=user_id_, item_id=item.id, kind=UserRelItemKind.favorite
         ).count()
     )
 
