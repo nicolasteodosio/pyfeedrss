@@ -52,3 +52,20 @@ def home(request: HttpRequest) -> HttpResponse:
     """
 
     return render(request, "home.html")
+
+
+def trigger_error(request: HttpRequest):
+    """View to debug sentry integration
+
+    Parameters
+    ----------
+    request
+
+    Returns
+    -------
+
+    """
+    try:
+        1 / 0
+    except Exception as e:
+        raise e

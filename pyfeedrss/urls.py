@@ -24,6 +24,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     url(r"^home/$", main.home, name="home"),
     url(r"^signup/$", main.signup, name="signup"),
+    url(r"sentry-debug/$", main.trigger_error, name="tigger_error"),
     url(r"^feed/add/$", feed.add, name="add_feed"),
     url(r"^feed/list/$", feed.list, name="list_feed"),
     url(r"^feed/ajax/update/$", feed.update, name="update_feed"),
