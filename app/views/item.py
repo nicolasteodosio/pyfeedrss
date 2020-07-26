@@ -3,7 +3,7 @@ from django.db.models import Exists, OuterRef
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 
-from app.forms import AddCommentForm
+from app.forms import AddCommentForm, MarkItemForm
 from app.models import UserRelItem
 from app.models.feed import Feed
 from app.models.item import Item
@@ -77,31 +77,7 @@ def add_comment(request: HttpRequest, item_id: int) -> HttpResponse:
 
 
 @login_required()
-def mark_as_read(request: HttpRequest) -> JsonResponse:
-    """View to mark a item as read.
-
-    Parameters
-    ----------
-    request: HttpRequest
-
-    Returns
-    -------
-
-    """
-    data = {}
-    try:
-        item_id = request.GET.get("itemId")
-        UserRelItem.objects.create(
-            user_id=request.user.id, item_id=item_id, kind=UserRelItemKind.read
-        )
-        data["sucess"] = "Item marked as read."
-        return JsonResponse(data)
-    except Exception as e:
-        raise e
-
-
-@login_required()
-def mark_as_favorite(request: HttpRequest) -> JsonResponse:
+def mark_as_kind(request: HttpRequest) -> JsonResponse:
     """View to mark a item as favorite.
 
     Parameters
@@ -112,13 +88,18 @@ def mark_as_favorite(request: HttpRequest) -> JsonResponse:
     -------
 
     """
-    data = {}
-    try:
-        item_id = request.GET.get("itemId")
-        UserRelItem.objects.create(
-            user_id=request.user.id, item_id=item_id, kind=UserRelItemKind.favorite
-        )
-        data["sucess"] = "Item marked as favorite."
-        return JsonResponse(data)
-    except Exception as e:
-        raise e
+    if request.is_ajax and request.method == "POST":
+        form = MarkItemForm(request.POST)
+        if form.is_valid():
+            item_id = form.cleaned_data.get("item_id")
+            kind = form.cleaned_data.get("kind")
+            UserRelItem.objects.create(
+                user_id=request.user.id,
+                item_id=item_id,
+                kind=UserRelItemKind.get_choice(kind).value,
+            )
+            return JsonResponse(
+                {"message": f"The item was marked as {kind}."}, status=200
+            )
+        return JsonResponse({"error": form.errors}, status=400)
+    return JsonResponse({"error": "An unexpected error occurred"}, status=500)
