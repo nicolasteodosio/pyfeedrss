@@ -1,10 +1,12 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import F, Q
+from django.db.models.aggregates import Count
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from app.forms import AddFeedForm
 from app.models.feed import Feed
-from app.models.user_follow_feed import UserFollowFeed
+from app.models.user_rel_item import UserRelItemKind
 from app.tasks import parse_feed, update_feed
 
 
@@ -47,16 +49,17 @@ def list(request: HttpRequest) -> HttpResponse:
     render list_feed.html with the followed and unfollowed feeds from a user
     """
 
-    user_id = request.user.id
-    users_follow_feed_id = UserFollowFeed.followed.filter(user_id=user_id).values_list(
-        "feed_id", flat=True
+    users_feed = Feed.objects.filter(userfollowfeed__user_id=request.user.id)
+    feeds_followed = users_feed.filter(userfollowfeed__disabled_at__isnull=True)
+    feeds_unfollowed = users_feed.filter(userfollowfeed__disabled_at__isnull=False)
+    feeds_followed = feeds_followed.annotate(
+        read_count=Count(
+            "item__userrelitem__id",
+            filter=Q(item__userrelitem__kind=UserRelItemKind.read),
+        ),
+        total=Count("item__id", distinct=True),
+        unread_count=F("total") - F("read_count"),
     )
-    users_unfollow_feed_id = UserFollowFeed.unfollowed.filter(
-        user_id=user_id
-    ).values_list("feed_id", flat=True)
-    feeds_followed = Feed.objects.filter(id__in=users_follow_feed_id)
-    feeds_unfollowed = Feed.objects.filter(id__in=users_unfollow_feed_id)
-
     return render(
         request,
         "list_feed.html",

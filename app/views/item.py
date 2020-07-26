@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.db.models import Exists, OuterRef
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from app.forms import AddCommentForm
@@ -24,9 +25,23 @@ def list(request: HttpRequest, feed_id: int) -> HttpResponse:
     """
     try:
         feed = Feed.objects.get(id=feed_id)
-        items = Item.objects.filter(feed_id=feed_id)
+        items = Item.objects.filter(feed_id=feed.id)
+
+        reads = UserRelItem.read.filter(item=OuterRef("pk"))
+        favorites = UserRelItem.favorite.filter(item=OuterRef("pk"))
+        commented = UserRelItem.commented.filter(item=OuterRef("pk"))
+        comment_content = commented.values("content")
+
+        items = items.annotate(
+            read=Exists(reads),
+            favorite=Exists(favorites),
+            commented=Exists(commented),
+            comment=comment_content,
+        )
 
         return render(request, "list_item.html", {"items": items, "feed": feed},)
+    except Feed.DoesNotExist:
+        raise Http404("Feed does not exist")
     except Exception as e:
         raise e
 
