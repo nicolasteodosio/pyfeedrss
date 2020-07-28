@@ -103,6 +103,9 @@ celerybeat.pid
 
 # Environments
 .env
+.env.dev
+.env.prod
+.env.db.prod
 .venv
 env/
 venv/
@@ -130,6 +133,3 @@ dmypy.json
 
 #Jetbrains
 .idea/
-!/.env.db.prod
-!/.env.prod
-!/.env.dev
