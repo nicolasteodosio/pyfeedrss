@@ -2,10 +2,11 @@ from .base import *  # noqa
 from .base import env
 
 DEBUG = False
-ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 STATIC_URL = "/staticfiles/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # noqa F405
+
 
 # Sentry
 import sentry_sdk

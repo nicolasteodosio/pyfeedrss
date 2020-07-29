@@ -45,14 +45,12 @@ LOGOUT_REDIRECT_URL = "/home"
 # Application definition
 
 INSTALLED_APPS = [
-    "debug_toolbar",
     "app.apps.AppConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "crispy_forms",
     "compressor",
@@ -60,7 +58,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -178,3 +175,7 @@ LOGGING = {
     },
     "root": {"level": "INFO", "handlers": ["console"]},
 }
+
+# django-compressor
+# ------------------------------------------------------------------------------
+STATICFILES_FINDERS += ["compressor.finders.CompressorFinder"]
