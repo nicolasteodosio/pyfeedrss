@@ -13,4 +13,3 @@ COPY . /opt/code
 WORKDIR /opt/code
 RUN pip install -r requirements/prod.txt
 
-ENTRYPOINT ["/opt/code/entrypoint.prod.sh"]

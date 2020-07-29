@@ -1,26 +1,18 @@
 version: '3'
 
 services:
-  postgres:
-    build: ./docker/postgres
-    env_file:
-      - ./.env.db.prod
-    volumes:
-      - .postgres_data:/var/lib/postgresql/data/
+
   web:
     build:
       context: .
       dockerfile: Dockerfile.prod
     ports:
       - "8000:8000"
-    command: gunicorn --env DJANGO_SETTINGS_MODULE=pyfeedrss.settings.prod pyfeedrss.wsgi --bind 0.0.0.0:8000 --workers 3
-
+    command: sh -c "python manage.py collectstatic --settings=pyfeedrss.settings.prod &&
+                    gunicorn --env DJANGO_SETTINGS_MODULE=pyfeedrss.settings.prod pyfeedrss.wsgi --bind 0.0.0.0:8000 --workers 3"
     env_file:
       - ./.env.prod
-    links:
-      - postgres
-    depends_on:
-      - postgres
+
     volumes:
       - static_volume:/code/opt/staticfiles
 
@@ -28,7 +20,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    command: python manage.py rundramatiq
+    command: python manage.py rundramatiq --settings=pyfeedrss.settings.prod
 
   nginx:
     build: ./docker/nginx
@@ -38,6 +30,6 @@ services:
       - 1337:80
     depends_on:
       - web
+
 volumes:
-  data_postgres:
   static_volume:
