@@ -1,8 +1,8 @@
-from datetime import datetime
 from unittest import mock
 
 import pytest
 from django.shortcuts import resolve_url
+from django.utils.timezone import now
 from model_bakery import baker
 
 from app.models import Feed, UserFollowFeed
@@ -28,10 +28,7 @@ def test_feed_list_view(logged_client):
     user_id_ = int(logged_client.session._session["_auth_user_id"])
     baker.make(UserFollowFeed, feed_id=feeds[0].id, user_id=user_id_)
     baker.make(
-        UserFollowFeed,
-        feed_id=feeds[1].id,
-        user_id=user_id_,
-        disabled_at=datetime.now(),
+        UserFollowFeed, feed_id=feeds[1].id, user_id=user_id_, disabled_at=now,
     )
     response = logged_client.get(resolve_url("list_feed"))
     assert response.status_code == 200

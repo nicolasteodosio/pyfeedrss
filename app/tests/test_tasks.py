@@ -1,11 +1,17 @@
-from datetime import datetime
 from unittest import mock
 from unittest.mock import Mock
 
 import pytest
 from django.contrib.auth.models import User
+from django.utils.timezone import now
 from model_bakery import baker
 
+from app.exceptions import (
+    FollowFeedError,
+    ParseEntriesError,
+    ParseFeedError,
+    UpdateFeedError,
+)
 from app.models import Feed, Item, UserFollowFeed
 from app.tasks import follow_feed, parse_entries, parse_feed, update_feed
 
@@ -102,7 +108,7 @@ def test_parse_feed_exception(
 ):
     user = baker.make(User)
     mock_parser.parse.side_effect = Exception("error")
-    with pytest.raises(Exception):
+    with pytest.raises(ParseFeedError):
         parse_feed.send("test.com", "test", user.id)
         broker.join(parse_feed.queue_name, fail_fast=True)
         worker.join()
@@ -126,18 +132,18 @@ def test_follow_feed(broker, worker):
 @pytest.mark.django_db(transaction=True)
 def test_follow_feed_feed_dont_exist(broker, worker):
     user = baker.make(User)
-    with pytest.raises(Exception):
+    with pytest.raises(FollowFeedError):
         follow_feed.send(123, user.id)
-        broker.join(follow_feed.queue_name, failt_fast=True)
+        broker.join(follow_feed.queue_name, fail_fast=True)
         worker.join()
 
 
 @pytest.mark.django_db(transaction=True)
 def test_follow_feed_user_dont_exist(broker, worker):
     feed = baker.make(Feed)
-    with pytest.raises(Exception):
+    with pytest.raises(FollowFeedError):
         follow_feed.send(feed.id, 456)
-        broker.join(follow_feed.queue_name, failt_fast=True)
+        broker.join(follow_feed.queue_name, fail_fast=True)
         worker.join()
 
 
@@ -177,7 +183,7 @@ def test_parse_entries(mock_parser, mock_create_items, broker, worker):
 def test_parse_entries_exception(mock_parser, mock_create_items, broker, worker):
     mock_parser.parse.side_effect = Exception("error")
     feed = baker.make(Feed)
-    with pytest.raises(Exception):
+    with pytest.raises(ParseEntriesError):
         parse_entries.send("teste.com", feed.id)
         broker.join(parse_entries.queue_name, fail_fast=True)
         worker.join()
@@ -188,7 +194,7 @@ def test_parse_entries_exception(mock_parser, mock_create_items, broker, worker)
 @mock.patch("app.tasks.create_items")
 @mock.patch("app.tasks.feedparser")
 def test_update_feed(mock_parser, mock_create_items, broker, worker):
-    feed = baker.make(Feed, last_build_date=datetime.now())
+    feed = baker.make(Feed, last_build_date=now)
     baker.make(Item, feed=feed, _quantity=10)
     mock_entries_dict = Mock(
         feed={
@@ -232,8 +238,22 @@ def test_update_feed(mock_parser, mock_create_items, broker, worker):
 @pytest.mark.django_db(transaction=True)
 @mock.patch("app.tasks.create_items")
 @mock.patch("app.tasks.feedparser")
+def test_update_feed_exception(mock_parser, mock_create_items, broker, worker):
+    feed = baker.make(Feed, last_build_date=now)
+    baker.make(Item, feed=feed, _quantity=10)
+    mock_parser.parse.side_effect = Exception
+    with pytest.raises(UpdateFeedError):
+        update_feed.send(feed.id)
+        broker.join(update_feed.queue_name, fail_fast=True)
+        worker.join()
+    mock_create_items.assert_not_called()
+
+
+@pytest.mark.django_db(transaction=True)
+@mock.patch("app.tasks.create_items")
+@mock.patch("app.tasks.feedparser")
 def test_update_feed_status_is_304(mock_parser, mock_create_items, broker, worker):
-    feed = baker.make(Feed, last_build_date=datetime.now())
+    feed = baker.make(Feed, last_build_date=now)
     baker.make(Item, feed=feed, _quantity=10)
     mock_entries_dict = Mock(
         feed={}, status=304, modified="Fri, 24 Jul 2020 15:38:57 GMT", entries=[]
