@@ -6,6 +6,6 @@ install:
 services:
   - postgresql
 script:
-  - pytest -xv --cov=app --cov-report term-missingD
+  - pytest -xv --cov=app --cov-report term-missing
 after_success:
   - coveralls
