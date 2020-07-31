@@ -20,3 +20,6 @@ DRAMATIQ_BROKER = {
 }
 
 DRAMATIQ_MAX_RETRIES = 0
+
+# WhiteNoise
+INSTALLED_APPS = ["whitenoise.runserver_nostatic"] + INSTALLED_APPS  # noqa F405
