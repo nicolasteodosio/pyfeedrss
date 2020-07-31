@@ -6,6 +6,7 @@ install:
 services:
   - postgresql
 script:
+  - pip install coverage==4.5.4
   - pytest -xv --cov=app --cov-report term-missing
 after_success:
   - coveralls
