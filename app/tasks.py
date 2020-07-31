@@ -4,6 +4,12 @@ import dramatiq
 import feedparser
 from django.conf import settings
 
+from app.exceptions import (
+    FollowFeedError,
+    ParseEntriesError,
+    ParseFeedError,
+    UpdateFeedError,
+)
 from app.models.feed import Feed
 from app.models.user_follow_feed import UserFollowFeed
 from app.utils import create_items
@@ -17,7 +23,7 @@ MAX_RETRIES = settings.DRAMATIQ_MAX_RETRIES
 @dramatiq.actor(max_retries=MAX_RETRIES)
 def parse_feed(url: str, alias: str, user_id: int) -> None:
     """Task responsible for parse the feed url.
-    Check if that feed is already created in dataase, if not create.
+    Check if that feed is already created in database, if not create.
     Call `dramatiq.actor` task follow_feed and parse_entries.
 
     Parameters
@@ -51,12 +57,12 @@ def parse_feed(url: str, alias: str, user_id: int) -> None:
         if created:
             parse_entries.send(url, feed_object.id)
     except Exception as e:
-        raise e
+        raise ParseFeedError from e
 
 
 @dramatiq.actor(max_retries=MAX_RETRIES)
 def follow_feed(feed_id: int, user_id: int) -> None:
-    """Task responsile for creating a UserFollowFeed register in database
+    """Task responsible for creating a UserFollowFeed register in database
 
     Parameters
     ----------
@@ -71,7 +77,7 @@ def follow_feed(feed_id: int, user_id: int) -> None:
     try:
         UserFollowFeed.objects.create(feed_id=feed_id, user_id=user_id)
     except Exception as e:
-        raise e
+        raise FollowFeedError from e
 
 
 @dramatiq.actor(max_retries=MAX_RETRIES)
@@ -94,7 +100,7 @@ def parse_entries(url: str, feed_id: int) -> None:
         parsed_entries = parsed_entries.entries
         create_items(feed_id, parsed_entries)
     except Exception as e:
-        raise e
+        raise ParseEntriesError from e
 
 
 @dramatiq.actor(max_retries=MAX_RETRIES)
@@ -126,4 +132,4 @@ def update_feed(feed_id: int) -> None:
 
         create_items(feed_id, parsed_entries)
     except Exception as e:
-        raise e
+        raise UpdateFeedError from e
