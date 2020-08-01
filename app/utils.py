@@ -1,9 +1,8 @@
 from datetime import datetime
+from time import mktime
 from typing import List
 
 from app.models import Item
-
-DATE_FORMAT_2 = "%a, %d %b %Y %X %Z"
 
 
 def create_items(feed_id: int, parsed_entries: List) -> None:
@@ -27,8 +26,8 @@ def create_items(feed_id: int, parsed_entries: List) -> None:
                 feed_id=feed_id,
                 title=entry["title"],
                 link=entry["link"],
-                descritpion=entry["summary"],
-                published_at=datetime.strptime(entry["published"], DATE_FORMAT_2),
+                description=entry["summary"],
+                published_at=datetime.fromtimestamp(mktime(entry["published_parsed"])),
             )
         )
     Item.objects.bulk_create(entries_to_create)
