@@ -10,7 +10,7 @@ class Feed(BaseModel):
 
     title = models.CharField("Title", max_length=100)
     link = models.URLField("Link")
-    description = models.TextField("Description")
+    description = models.TextField("Description", null=True, blank=True)
     ttl = models.IntegerField("TTL")
     last_build_date = models.DateTimeField("Last Build Date")
 
