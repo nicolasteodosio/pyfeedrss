@@ -1,13 +1,25 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import F, Q
 from django.db.models.aggregates import Count
+from django.dispatch import Signal, receiver
 from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from app.forms import AddFeedForm, UpdateFeedForm
+from app.models import Notification
 from app.models.feed import Feed
 from app.models.user_rel_item import UserRelItemKind
 from app.tasks import parse_feed, update_feed
+
+notification_read_signal = Signal(providing_args=["notifications"])
+
+
+@receiver(notification_read_signal)
+def mark_notification_as_read_receiver(sender, **kwargs):
+    for notification in kwargs["notifications"]:
+        notification.read = True
+    Notification.objects.bulk_update(kwargs["notifications"], ["read"])
 
 
 @login_required()
@@ -31,7 +43,10 @@ def add(request: HttpRequest) -> HttpResponse:
             url = form.cleaned_data.get("url")
             alias = form.cleaned_data.get("alias")
             parse_feed.send(url, alias, request.user.id)
+            messages.success(request, "Feed added and sent to be parsed.")
+            return redirect("list_feed")
         else:
+            messages.error(request, f"Form not valid: {form.errors}")
             return render(
                 request, "add_feed.html", {"form": form, "messages": form.errors}
             )
@@ -53,7 +68,8 @@ def list(request: HttpRequest) -> HttpResponse:
     render list_feed.html with the followed and unfollowed feeds from a user
     """
 
-    users_feed = Feed.objects.filter(userfollowfeed__user_id=request.user.id)
+    user_id = request.user.id
+    users_feed = Feed.objects.filter(userfollowfeed__user_id=user_id)
     feeds_followed = users_feed.filter(userfollowfeed__disabled_at__isnull=True)
     feeds_unfollowed = users_feed.filter(userfollowfeed__disabled_at__isnull=False)
     feeds_followed = feeds_followed.annotate(
@@ -64,6 +80,13 @@ def list(request: HttpRequest) -> HttpResponse:
         total=Count("item__id", distinct=True),
         unread_count=F("total") - F("read_count"),
     )
+    notifications = Notification.objects.filter(user_id=user_id, read=False)
+    to_notify = []
+    for notification in notifications:
+        to_notify.append(notification.content)
+    if to_notify:
+        messages.warning(request, ",".join(to_notify))
+        notification_read_signal.send(sender=Notification, notifications=notifications)
     return render(
         request,
         "list_feed.html",
@@ -88,7 +111,7 @@ def update(request: HttpRequest) -> JsonResponse:
         form = UpdateFeedForm(request.POST)
         if form.is_valid():
             feed_id = form.cleaned_data.get("feed_id")
-            update_feed.send(feed_id)
+            update_feed.send(feed_id, request.user.id)
             return JsonResponse({"message": "The feed was sent to update."}, status=200)
         return JsonResponse({"error": form.errors}, status=400)
     return JsonResponse({"error": "An unexpected error occurred"}, status=500)
