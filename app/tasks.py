@@ -1,4 +1,5 @@
 from datetime import datetime
+from time import mktime
 
 import dramatiq
 import feedparser
@@ -14,16 +15,21 @@ from app.models.feed import Feed
 from app.models.user_follow_feed import UserFollowFeed
 from app.utils import create_items
 
-DATE_FORMAT = "%a, %d %b %Y %X %z"
-DATE_FORMAT_2 = "%a, %d %b %Y %X %Z"
+DATE_FORMAT = "%a, %d %b %Y %X %Z"
 
 MAX_RETRIES = settings.DRAMATIQ_MAX_RETRIES
+
+
+def should_retry(retries_so_far, exception):
+    if retries_so_far < MAX_RETRIES:
+        return True
+    return False
 
 
 @dramatiq.actor(max_retries=MAX_RETRIES)
 def parse_feed(url: str, alias: str, user_id: int) -> None:
     """Task responsible for parse the feed url.
-    Check if that feed is already created in database, if not create.
+    Check if that feed is already created in database, if not, create.
     Call `dramatiq.actor` task follow_feed and parse_entries.
 
     Parameters
@@ -45,9 +51,11 @@ def parse_feed(url: str, alias: str, user_id: int) -> None:
         parsed_feed = parsed.feed
         feed_dict = {
             "link": parsed.href,
-            "description": parsed.description,
+            "description": getattr(parsed, "description", None),
             "ttl": parsed_feed.ttl,
-            "last_build_date": datetime.strptime(parsed.modified, DATE_FORMAT_2,),
+            "last_build_date": datetime.fromtimestamp(
+                mktime(parsed_feed.modified_parsed)
+            ),
         }
         feed_object, created = Feed.objects.get_or_create(
             title=parsed_feed.title, defaults=feed_dict
@@ -103,7 +111,7 @@ def parse_entries(url: str, feed_id: int) -> None:
         raise ParseEntriesError from e
 
 
-@dramatiq.actor(max_retries=MAX_RETRIES)
+@dramatiq.actor(retry_when=should_retry)
 def update_feed(feed_id: int) -> None:
     """Task responsible to check and update a feed if necessary.
     Call `create_items` if has new item to create
@@ -120,12 +128,14 @@ def update_feed(feed_id: int) -> None:
         feed = Feed.objects.get(id=feed_id)
 
         parsed_feed = feedparser.parse(
-            feed.link, modified=feed.last_build_date.strftime(DATE_FORMAT_2)
+            feed.link, modified=feed.last_build_date.strftime(DATE_FORMAT)
         )
         if parsed_feed.status == 304:
             return
 
-        feed.last_build_date = datetime.strptime(parsed_feed.modified, DATE_FORMAT_2)
+        feed.last_build_date = datetime.fromtimestamp(
+            mktime(parsed_feed.feed.modified_parsed)
+        )
         feed.save(update_fields=["last_build_date"])
 
         parsed_entries = parsed_feed.entries
