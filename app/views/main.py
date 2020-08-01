@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpRequest, HttpResponse
@@ -25,8 +26,10 @@ def signup(request: HttpRequest) -> HttpResponse:
                 password = form.cleaned_data.get("password1")
                 user = authenticate(username=username, password=password)
                 login(request, user)
+                messages.success(request, "User created")
                 return redirect("home")
             else:
+                messages.error(request, f"Form not valid: {form.errors}")
                 return render(
                     request,
                     "registration/signup.html",
