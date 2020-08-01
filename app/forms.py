@@ -52,7 +52,7 @@ class AddCommentForm(forms.Form):
         self.helper.add_input(Submit("submit", "Submit"))
 
 
-class UpdateFeedForm(forms.Form):
+class FeedForm(forms.Form):
 
     feed_id = forms.IntegerField()
 
