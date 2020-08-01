@@ -5,9 +5,10 @@ from django.db.models.aggregates import Count
 from django.dispatch import Signal, receiver
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 
-from app.forms import AddFeedForm, UpdateFeedForm
-from app.models import Notification
+from app.forms import AddFeedForm, FeedForm
+from app.models import Notification, UserFollowFeed
 from app.models.feed import Feed
 from app.models.user_rel_item import UserRelItemKind
 from app.tasks import parse_feed, update_feed
@@ -108,10 +109,64 @@ def update(request: HttpRequest) -> JsonResponse:
     JsonResponse
     """
     if request.is_ajax and request.method == "POST":
-        form = UpdateFeedForm(request.POST)
+        form = FeedForm(request.POST)
         if form.is_valid():
             feed_id = form.cleaned_data.get("feed_id")
             update_feed.send(feed_id, request.user.id)
             return JsonResponse({"message": "The feed was sent to update."}, status=200)
+        return JsonResponse({"error": form.errors}, status=400)
+    return JsonResponse({"error": "An unexpected error occurred"}, status=500)
+
+
+@login_required()
+def unfollow(request: HttpRequest) -> JsonResponse:
+    """"View to mark a feed as followed by the user.
+    Receive `feedId` as a parameter and update the UserFollowFeed Model
+
+    Parameters
+    ----------
+    request: HttpRequest
+
+    Returns
+    -------
+    JsonResponse
+    """
+    if request.is_ajax and request.method == "POST":
+        form = FeedForm(request.POST)
+        if form.is_valid():
+            feed_id = form.cleaned_data.get("feed_id")
+            feed = UserFollowFeed.objects.get(feed_id=feed_id, user_id=request.user.id)
+            feed.disabled_at = timezone.now()
+            feed.save(update_fields=["disabled_at"])
+            return JsonResponse(
+                {"message": "The feed was marked as unfollowed."}, status=200
+            )
+        return JsonResponse({"error": form.errors}, status=400)
+    return JsonResponse({"error": "An unexpected error occurred"}, status=500)
+
+
+@login_required()
+def follow(request: HttpRequest) -> JsonResponse:
+    """View to mark a feed as followed by the user.
+    Receive `feedId` as a parameter and update the UserFollowFeed Model
+
+    Parameters
+    ----------
+    request: HttpRequest
+
+    Returns
+    -------
+    JsonResponse
+    """
+    if request.is_ajax and request.method == "POST":
+        form = FeedForm(request.POST)
+        if form.is_valid():
+            feed_id = form.cleaned_data.get("feed_id")
+            feed = UserFollowFeed.objects.get(feed_id=feed_id, user_id=request.user.id)
+            feed.disabled_at = None
+            feed.save(update_fields=["disabled_at"])
+            return JsonResponse(
+                {"message": "The feed was marked as followed."}, status=200
+            )
         return JsonResponse({"error": form.errors}, status=400)
     return JsonResponse({"error": "An unexpected error occurred"}, status=500)
