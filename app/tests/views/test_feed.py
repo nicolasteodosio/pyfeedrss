@@ -2,7 +2,9 @@ from unittest import mock
 
 import pytest
 from django.shortcuts import resolve_url
+from django.utils import timezone
 from django.utils.timezone import now
+from freezegun import freeze_time
 from model_bakery import baker
 
 from app.models import Feed, Notification, UserFollowFeed
@@ -115,3 +117,74 @@ def test_add_feed_view(parse_feed_mock, logged_client):
     assert response.status_code == 302
     assert response.resolver_match.url_name == "add_feed"
     parse_feed_mock.send.assert_called_once_with("http://test.com", "", user_id_)
+
+
+def test_follow_feed_view_user_not_logged(client):
+    response = client.get(resolve_url("follow_feed"))
+    assert response.status_code == 302
+    assert response.url == "/accounts/login/?next=/feed/ajax/follow/"
+
+
+def test_follow_feed_view_wrong_method(logged_client):
+    response = logged_client.get(resolve_url("follow_feed"))
+    assert response.json() == {"error": "An unexpected error occurred"}
+    assert response.status_code == 500
+
+
+def test_follow_feed_view_invalid_form(logged_client):
+    response = logged_client.post(resolve_url("follow_feed"), data={})
+    assert response.status_code == 400
+    assert response.resolver_match.url_name == "follow_feed"
+    assert response.json()["error"] == {"feed_id": ["This field is required."]}
+
+
+def test_follow_feed_view(logged_client):
+    user_id_ = int(logged_client.session._session["_auth_user_id"])
+    ufeed = baker.make(UserFollowFeed, disabled_at=timezone.now(), user_id=user_id_)
+    response = logged_client.post(
+        resolve_url("follow_feed"), data={"feed_id": ufeed.feed_id}
+    )
+
+    assert response.status_code == 200
+    assert response.resolver_match.url_name == "follow_feed"
+    assert response.json()["message"] == "The feed was marked as followed."
+    assert (
+        UserFollowFeed.objects.get(feed_id=ufeed.feed_id, user_id=user_id_).disabled_at
+        is None
+    )
+
+
+def test_unfollow_feed_view_user_not_logged(client):
+    response = client.get(resolve_url("unfollow_feed"))
+    assert response.status_code == 302
+    assert response.url == "/accounts/login/?next=/feed/ajax/unfollow/"
+
+
+def test_unfollow_feed_view_wrong_method(logged_client):
+    response = logged_client.get(resolve_url("unfollow_feed"))
+    assert response.json() == {"error": "An unexpected error occurred"}
+    assert response.status_code == 500
+
+
+def test_unfollow_feed_view_invalid_form(logged_client):
+    response = logged_client.post(resolve_url("unfollow_feed"), data={})
+    assert response.status_code == 400
+    assert response.resolver_match.url_name == "unfollow_feed"
+    assert response.json()["error"] == {"feed_id": ["This field is required."]}
+
+
+@freeze_time("2020-01-01")
+def test_unfollow_feed_view(logged_client):
+    user_id_ = int(logged_client.session._session["_auth_user_id"])
+    ufeed = baker.make(UserFollowFeed, disabled_at=None, user_id=user_id_)
+    response = logged_client.post(
+        resolve_url("unfollow_feed"), data={"feed_id": ufeed.feed_id}
+    )
+
+    assert response.status_code == 200
+    assert response.resolver_match.url_name == "unfollow_feed"
+    assert response.json()["message"] == "The feed was marked as unfollowed."
+    assert (
+        UserFollowFeed.objects.get(feed_id=ufeed.feed_id, user_id=user_id_).disabled_at
+        == timezone.now()
+    )
