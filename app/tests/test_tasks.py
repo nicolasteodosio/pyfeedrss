@@ -1,9 +1,11 @@
+from datetime import datetime
 from unittest import mock
 from unittest.mock import Mock
 
 import pytest
 from django.contrib.auth.models import User
 from django.utils.timezone import now
+from freezegun import freeze_time
 from model_bakery import baker
 
 from app.exceptions import (
@@ -17,11 +19,13 @@ from app.tasks import follow_feed, parse_entries, parse_feed, update_feed
 
 
 class FeedMock(object):
-    def __init__(self, ttl, title, **kwargs):
+    def __init__(self, ttl, title, modified_parsed, **kwargs):
         self.ttl = ttl
         self.title = title
+        self.modified_parsed = modified_parsed.timetuple()
 
 
+@freeze_time("2020-07-24")
 @pytest.mark.django_db(transaction=True)
 @mock.patch("app.tasks.parse_entries")
 @mock.patch("app.tasks.follow_feed")
@@ -33,6 +37,7 @@ def test_parse_feed(follow_feed_mock, parse_entries_mock, broker, worker):
             feed=FeedMock(
                 ttl=60,
                 title="Test",
+                modified_parsed=datetime.now(),
                 kwargs={
                     "title": "Test",
                     "links": [{"test": "test"}, {"test": "test", "href": "test.com"}],
@@ -59,6 +64,7 @@ def test_parse_feed(follow_feed_mock, parse_entries_mock, broker, worker):
         assert Feed.objects.filter(title=mock_feed_dict.feed.title).count() == 1
 
 
+@freeze_time("2020-07-24")
 @pytest.mark.django_db(transaction=True)
 @mock.patch("app.tasks.parse_entries")
 @mock.patch("app.tasks.follow_feed")
@@ -70,9 +76,10 @@ def test_parse_feed_already_created(
 
     with mock.patch("app.tasks.feedparser") as mock_parser:
         mock_feed_dict = Mock(
-            feed=Mock(
+            feed=FeedMock(
                 ttl=60,
                 title="Test",
+                modified_parsed=datetime.now(),
                 kwargs={
                     "title": "Test",
                     "links": [{"test": "test"}, {"test": "test", "href": "test.com"}],
@@ -197,15 +204,21 @@ def test_update_feed(mock_parser, mock_create_items, broker, worker):
     feed = baker.make(Feed, last_build_date=now)
     baker.make(Item, feed=feed, _quantity=10)
     mock_entries_dict = Mock(
-        feed={
-            "title": "Test",
-            "links": [{"test": "test"}, {"test": "test", "href": "test.com"}],
-            "ttl": 60,
-            "link": "la",
-            "updated": "Fri, 24 Jul 2020 15:38:57 GMT",
-        },
+        feed=FeedMock(
+            ttl=60,
+            title="Test",
+            modified_parsed=datetime.now(),
+            kwargs={
+                "title": "Test",
+                "links": [{"test": "test"}, {"test": "test", "href": "test.com"}],
+                "ttl": 60,
+                "link": "la",
+                "updated": "Fri, 24 Jul 2020 15:38:57 GMT",
+            },
+        ),
         status=301,
         modified="Fri, 24 Jul 2020 15:38:57 GMT",
+        modified_parsed=datetime.now().timetuple(),
         entries=[
             {
                 "title": "Test",
