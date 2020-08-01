@@ -20,6 +20,7 @@
                                     <span class="sr-only">unread items</span>
                                 </button>
                             </a>
+                            <button type="button" class="btn btn-dark unfollow" data-id="{{ feed.id }}"> Unfollow</button>
                         </div>
                     </h5>
 
@@ -44,6 +45,10 @@
                                 aria-expanded="true" aria-controls="{{ feed.id }}">
                             {{ feed.id }} - {{ feed.title }}
                         </button>
+                        <div style="float: right">
+                            <button disabled type="button" class="btn btn-info update" data-id="{{ feed.id }}"> Update</button>
+                            <button type="button" class="btn btn-dark follow" data-id="{{ feed.id }}"> Follow</button>
+                        </div>
                     </h5>
                 </div>
 
@@ -81,5 +86,45 @@
                 }
             });
         });
+        $(".unfollow").click(function () {
+        var feedId = $(this).data('id');
+          $.ajax({
+                url: '{% url 'unfollow_feed' %}',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                method: "POST",
+                 data: {
+                    "feed_id": feedId,
+                },
+                dataType: 'json',
+                success: function (data) {
+                    alert(data.message);
+                },
+                error: function (data) {
+                    alert(data.error);
+                }
+            });
+    });
+    $(".follow").click(function () {
+        var feedId = $(this).data('id');
+           $.ajax({
+                url: '{% url 'follow_feed' %}',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                method: "POST",
+                 data: {
+                    "feed_id": feedId,
+                },
+                dataType: 'json',
+                success: function (data) {
+                    alert(data.message);
+                },
+                error: function (data) {
+                    alert(data.error);
+                }
+            });
+    });
     </script>
 {% endblock %}
