@@ -12,6 +12,7 @@ class Feed(BaseModel):
     link = models.URLField("Link")
     description = models.TextField("Description", null=True, blank=True)
     ttl = models.IntegerField("TTL")
+    etag = models.CharField("Etag", max_length=200, null=True, blank=True)
     last_build_date = models.DateTimeField("Last Build Date")
 
     def __str__(self) -> str:
