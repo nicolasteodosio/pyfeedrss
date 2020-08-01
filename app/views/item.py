@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Exists, OuterRef
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
@@ -69,7 +70,9 @@ def add_comment(request: HttpRequest, item_id: int) -> HttpResponse:
                 content=comment,
                 kind=UserRelItemKind.comment,
             )
+            messages.success(request, "Comment was added to item.")
         else:
+            messages.error(request, f"Form not valid: {form.errors}")
             render(request, "add_comment.html", {"form": form, "messages": form.errors})
     else:
         form = AddCommentForm()
