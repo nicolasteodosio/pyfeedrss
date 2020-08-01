@@ -11,6 +11,7 @@ from app.exceptions import (
     ParseFeedError,
     UpdateFeedError,
 )
+from app.models import Notification
 from app.models.feed import Feed
 from app.models.user_follow_feed import UserFollowFeed
 from app.utils import create_items
@@ -18,12 +19,6 @@ from app.utils import create_items
 DATE_FORMAT = "%a, %d %b %Y %X %Z"
 
 MAX_RETRIES = settings.DRAMATIQ_MAX_RETRIES
-
-
-def should_retry(retries_so_far, exception):
-    if retries_so_far < MAX_RETRIES:
-        return True
-    return False
 
 
 @dramatiq.actor(max_retries=MAX_RETRIES)
@@ -52,7 +47,8 @@ def parse_feed(url: str, alias: str, user_id: int) -> None:
         feed_dict = {
             "link": parsed.href,
             "description": getattr(parsed, "description", None),
-            "ttl": parsed_feed.ttl,
+            "ttl": getattr(parsed_feed, "ttl", 0),
+            "etag": getattr(parsed, "etag", None),
             "last_build_date": datetime.fromtimestamp(
                 mktime(parsed_feed.modified_parsed)
             ),
@@ -111,8 +107,8 @@ def parse_entries(url: str, feed_id: int) -> None:
         raise ParseEntriesError from e
 
 
-@dramatiq.actor(retry_when=should_retry)
-def update_feed(feed_id: int) -> None:
+@dramatiq.actor(max_retries=MAX_RETRIES)
+def update_feed(feed_id: int, user_id: int) -> None:
     """Task responsible to check and update a feed if necessary.
     Call `create_items` if has new item to create
 
@@ -120,6 +116,8 @@ def update_feed(feed_id: int) -> None:
     ----------
     feed_id: int
         Feed id
+    user_id: int
+        User id
     Returns
     -------
 
@@ -127,19 +125,28 @@ def update_feed(feed_id: int) -> None:
     try:
         feed = Feed.objects.get(id=feed_id)
 
-        parsed_feed = feedparser.parse(
-            feed.link, modified=feed.last_build_date.strftime(DATE_FORMAT)
-        )
+        if feed.etag:
+            parsed_feed = feedparser.parse(feed.link, etag=feed.etag)
+        else:
+            parsed_feed = feedparser.parse(
+                feed.link, modified=feed.last_build_date.strftime(DATE_FORMAT)
+            )
         if parsed_feed.status == 304:
             return
 
+        feed.etag = getattr(parsed_feed, "etag", None)
         feed.last_build_date = datetime.fromtimestamp(
             mktime(parsed_feed.feed.modified_parsed)
         )
-        feed.save(update_fields=["last_build_date"])
+        feed.save(update_fields=["last_build_date", "etag"])
 
         parsed_entries = parsed_feed.entries
 
         create_items(feed_id, parsed_entries)
     except Exception as e:
+        Notification.objects.get_or_create(
+            user_id=user_id,
+            content=f"Feed {feed_id} was not updated, try again latter",
+            defaults={"read": False},
+        )
         raise UpdateFeedError from e
