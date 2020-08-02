@@ -47,7 +47,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    command: sh -c "./wait-for.sh postgres:5432 -- python manage.py runserver 0.0.0.0:8000 --settings=pyfeedrss.settings.local"
+    command: sh -c "./wait-for.sh postgres:5432 -- python manage.migrate --settings=pyfeedrss.settings.local && python manage.py runserver 0.0.0.0:8000 --settings=pyfeedrss.settings.local"
     env_file:
       - ./.env.dev
     links:

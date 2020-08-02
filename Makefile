@@ -10,6 +10,11 @@ RESET:=$(shell tput sgr0)
 SUCCESS_MESSAGE:=OK
 SUCCESS:=$(GREEN)$(SUCCESS_MESSAGE)$(RESET)
 
+create-envs:
+	@echo "Creating envs..."
+	@cp .env.example .env
+	@cp .env.example .env.dev
+	@cp .env.example .env.prod
 
 env-switch-dev:
 	@echo "switching to DEV..."
