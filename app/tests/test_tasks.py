@@ -37,7 +37,7 @@ def test_parse_feed(follow_feed_mock, parse_entries_mock, broker, worker):
             feed=FeedMock(
                 ttl=60,
                 title="Test",
-                modified_parsed=datetime.now(),
+                modified_parsed=now(),
                 kwargs={
                     "title": "Test",
                     "links": [{"test": "test"}, {"test": "test", "href": "test.com"}],
@@ -155,54 +155,46 @@ def test_follow_feed_user_dont_exist(broker, worker):
         worker.join()
 
 
+@freeze_time("2020-07-24")
 @pytest.mark.django_db(transaction=True)
-@mock.patch("app.tasks.create_items")
 @mock.patch("app.tasks.feedparser")
-def test_parse_entries(mock_parser, mock_create_items, broker, worker):
+def test_parse_entries(mock_parser, broker, worker):
     mock_entries_dict = Mock(
-        entries={
-            "title": "Test",
-            "links": [{"test": "test"}, {"test": "test", "href": "test.com"}],
-            "ttl": 60,
-            "summary": "Mysummary test",
-            "updated": "Fri, 24 Jul 2020 15:38:57 GMT",
-        }
+        entries=[
+            {
+                "title": "Test",
+                "links": [{"test": "test"}, {"test": "test", "href": "test.com"}],
+                "link": "imatest.com",
+                "ttl": 60,
+                "summary": "Mysummary test",
+                "updated": "Fri, 24 Jul 2020 15:38:57 GMT",
+                "published_parsed": now().timetuple(),
+            }
+        ]
     )
     mock_parser.parse.return_value = mock_entries_dict
     feed = baker.make(Feed)
     parse_entries.send("teste.com", feed.id)
     broker.join(parse_entries.queue_name)
     worker.join()
-    mock_create_items.assert_called_once_with(
-        feed.id,
-        {
-            "title": "Test",
-            "links": [{"test": "test"}, {"test": "test", "href": "test.com"}],
-            "ttl": 60,
-            "summary": "Mysummary test",
-            "updated": "Fri, 24 Jul 2020 15:38:57 GMT",
-        },
-    )
+    assert Item.objects.all().count() == 1
 
 
 @pytest.mark.django_db(transaction=True)
-@mock.patch("app.tasks.create_items")
 @mock.patch("app.tasks.feedparser")
-def test_parse_entries_exception(mock_parser, mock_create_items, broker, worker):
+def test_parse_entries_exception(mock_parser, broker, worker):
     mock_parser.parse.side_effect = Exception("error")
     feed = baker.make(Feed)
     with pytest.raises(ParseEntriesError):
         parse_entries.send("teste.com", feed.id)
         broker.join(parse_entries.queue_name, fail_fast=True)
         worker.join()
-    mock_create_items.assert_not_called()
 
 
 @freeze_time("2020-07-24", tick=True)
 @pytest.mark.django_db(transaction=True)
-@mock.patch("app.tasks.create_items")
 @mock.patch("app.tasks.feedparser")
-def test_update_feed_using_modified(mock_parser, mock_create_items, broker, worker):
+def test_update_feed_using_modified(mock_parser, broker, worker):
     user = baker.make(User)
     feed = baker.make(Feed, last_build_date=now, etag=None)
     baker.make(Item, feed=feed, _quantity=10)
@@ -227,38 +219,28 @@ def test_update_feed_using_modified(mock_parser, mock_create_items, broker, work
             {
                 "title": "Test",
                 "links": [{"test": "test"}, {"test": "test", "href": "test.com"}],
+                "link": "imatest.com",
                 "ttl": 60,
                 "summary": "Mysummary test",
                 "updated": "Fri, 24 Jul 2020 15:38:57 GMT",
-            },
+                "published_parsed": now().timetuple(),
+            }
         ],
     )
     mock_parser.parse.return_value = mock_entries_dict
     update_feed.send(feed.id, user.id)
     broker.join(update_feed.queue_name)
     worker.join()
-    mock_create_items.assert_called_once_with(
-        feed.id,
-        [
-            {
-                "title": "Test",
-                "links": [{"test": "test"}, {"test": "test", "href": "test.com"}],
-                "ttl": 60,
-                "summary": "Mysummary test",
-                "updated": "Fri, 24 Jul 2020 15:38:57 GMT",
-            }
-        ],
-    )
     mock_parser.parse.assert_called_once_with(
         f"{feed.link}", modified="Fri, 24 Jul 2020 00:00:00 UTC"
     )
     assert Feed.objects.get(id=feed.id).last_build_date != feed.last_build_date
+    assert Item.objects.all().count() == 11
 
 
 @pytest.mark.django_db(transaction=True)
-@mock.patch("app.tasks.create_items")
 @mock.patch("app.tasks.feedparser")
-def test_update_feed_using_etag(mock_parser, mock_create_items, broker, worker):
+def test_update_feed_using_etag(mock_parser, broker, worker):
     user = baker.make(User)
     feed = baker.make(Feed, last_build_date=now, etag="test")
     baker.make(Item, feed=feed, _quantity=10)
@@ -283,38 +265,28 @@ def test_update_feed_using_etag(mock_parser, mock_create_items, broker, worker):
             {
                 "title": "Test",
                 "links": [{"test": "test"}, {"test": "test", "href": "test.com"}],
+                "link": "imatest.com",
                 "ttl": 60,
                 "summary": "Mysummary test",
                 "updated": "Fri, 24 Jul 2020 15:38:57 GMT",
-            },
+                "published_parsed": now().timetuple(),
+            }
         ],
     )
     mock_parser.parse.return_value = mock_entries_dict
     update_feed.send(feed.id, user.id)
     broker.join(update_feed.queue_name)
     worker.join()
-    mock_create_items.assert_called_once_with(
-        feed.id,
-        [
-            {
-                "title": "Test",
-                "links": [{"test": "test"}, {"test": "test", "href": "test.com"}],
-                "ttl": 60,
-                "summary": "Mysummary test",
-                "updated": "Fri, 24 Jul 2020 15:38:57 GMT",
-            }
-        ],
-    )
     mock_parser.parse.assert_called_once_with(f"{feed.link}", etag=feed.etag)
     new_feed = Feed.objects.get(id=feed.id)
     assert new_feed.last_build_date != feed.last_build_date
     assert new_feed.etag == "new"
+    assert Item.objects.all().count() == 11
 
 
 @pytest.mark.django_db(transaction=True)
-@mock.patch("app.tasks.create_items")
 @mock.patch("app.tasks.feedparser")
-def test_update_feed_exception(mock_parser, mock_create_items, broker, worker):
+def test_update_feed_exception(mock_parser, broker, worker):
     user = baker.make(User)
     feed = baker.make(Feed, last_build_date=now)
     baker.make(Item, feed=feed, _quantity=10)
@@ -323,14 +295,12 @@ def test_update_feed_exception(mock_parser, mock_create_items, broker, worker):
         update_feed.send(feed.id, user.id)
         broker.join(update_feed.queue_name, fail_fast=True)
         worker.join()
-    mock_create_items.assert_not_called()
     assert Notification.objects.all().count() == 1
 
 
 @pytest.mark.django_db(transaction=True)
-@mock.patch("app.tasks.create_items")
 @mock.patch("app.tasks.feedparser")
-def test_update_feed_status_is_304(mock_parser, mock_create_items, broker, worker):
+def test_update_feed_status_is_304(mock_parser, broker, worker):
     user = baker.make(User)
     feed = baker.make(Feed, last_build_date=now)
     baker.make(Item, feed=feed, _quantity=10)
@@ -341,5 +311,5 @@ def test_update_feed_status_is_304(mock_parser, mock_create_items, broker, worke
     update_feed.send(feed.id, user.id)
     broker.join(update_feed.queue_name)
     worker.join()
-    mock_create_items.assert_not_called()
     assert Notification.objects.all().count() == 0
+    assert Item.objects.all().count() == 10
