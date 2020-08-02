@@ -120,7 +120,7 @@ def update(request: HttpRequest) -> JsonResponse:
 
 @login_required()
 def unfollow(request: HttpRequest) -> JsonResponse:
-    """"View to mark a feed as followed by the user.
+    """"View to mark a feed as unfollowed by the user.
     Receive `feedId` as a parameter and update the UserFollowFeed Model
 
     Parameters

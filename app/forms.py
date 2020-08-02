@@ -53,10 +53,17 @@ class AddCommentForm(forms.Form):
 
 
 class FeedForm(forms.Form):
+    """Class responsible to manage feed interactions in views
+
+    """
 
     feed_id = forms.IntegerField()
 
 
 class MarkItemForm(forms.Form):
+    """Class responsible to handle mark_item view
+
+    """
+
     item_id = forms.IntegerField()
     kind = forms.ChoiceField(choices=UserRelItemKind.choices)

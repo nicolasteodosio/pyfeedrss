@@ -5,6 +5,10 @@ from app.models.base import BaseModel
 
 
 class Notification(BaseModel):
+    """Notification class model
+
+    """
+
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     content = models.TextField("Content")
     read = models.BooleanField("Read", default=False)
