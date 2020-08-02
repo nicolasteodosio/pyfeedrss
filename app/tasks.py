@@ -11,10 +11,9 @@ from app.exceptions import (
     ParseFeedError,
     UpdateFeedError,
 )
-from app.models import Notification
+from app.models import Item, Notification
 from app.models.feed import Feed
 from app.models.user_follow_feed import UserFollowFeed
-from app.utils import create_items
 
 DATE_FORMAT = "%a, %d %b %Y %X %Z"
 
@@ -87,13 +86,13 @@ def follow_feed(feed_id: int, user_id: int) -> None:
 @dramatiq.actor(max_retries=MAX_RETRIES)
 def parse_entries(url: str, feed_id: int) -> None:
     """Task responsible to parse entries from the url feed.
-    Call `create_items` to create in the dabatase
+    Call `bulk_entries_create` to create in the dabatase
 
     Parameters
     ----------
     url: str
         Url feed to get entries
-    feed_id: innt
+    feed_id: int
         Feed id
     Returns
     -------
@@ -102,7 +101,7 @@ def parse_entries(url: str, feed_id: int) -> None:
     try:
         parsed_entries = feedparser.parse(url)
         parsed_entries = parsed_entries.entries
-        create_items(feed_id, parsed_entries)
+        Item.objects.bulk_entries_create(feed_id, parsed_entries)
     except Exception as e:
         raise ParseEntriesError from e
 
@@ -110,7 +109,7 @@ def parse_entries(url: str, feed_id: int) -> None:
 @dramatiq.actor(max_retries=MAX_RETRIES)
 def update_feed(feed_id: int, user_id: int) -> None:
     """Task responsible to check and update a feed if necessary.
-    Call `create_items` if has new item to create
+    Call `bulk_entries_create` if has new item to create
 
     Parameters
     ----------
@@ -121,6 +120,9 @@ def update_feed(feed_id: int, user_id: int) -> None:
     Returns
     -------
 
+    Error
+    -----
+        If an error is triggered a Notification is created only once.
     """
     try:
         feed = Feed.objects.get(id=feed_id)
@@ -142,7 +144,7 @@ def update_feed(feed_id: int, user_id: int) -> None:
 
         parsed_entries = parsed_feed.entries
 
-        create_items(feed_id, parsed_entries)
+        Item.objects.bulk_entries_create(feed_id, parsed_entries)
     except Exception as e:
         Notification.objects.get_or_create(
             user_id=user_id,
