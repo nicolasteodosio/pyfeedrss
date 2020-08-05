@@ -96,6 +96,18 @@ def mark_as_kind(request: HttpRequest) -> JsonResponse:
         if form.is_valid():
             item_id = form.cleaned_data.get("item_id")
             kind = form.cleaned_data.get("kind")
+
+            if kind == UserRelItemKind.unfavorite:
+                favorite_rel = UserRelItem.objects.filter(
+                    user_id=request.user.id,
+                    item_id=item_id,
+                    kind=UserRelItemKind.favorite,
+                    disabled_at__isnull=True,
+                )
+                UserRelItem.objects.bulk_update_favorite(favorite_rel)
+                return JsonResponse(
+                    {"message": f"The item was marked as {kind}."}, status=200
+                )
             UserRelItem.objects.create(
                 user_id=request.user.id,
                 item_id=item_id,

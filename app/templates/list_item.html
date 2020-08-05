@@ -1,59 +1,67 @@
 {% extends 'base.html' %}
 {% block content %}
     <div id="accordion">
-    <h2> {{ feed.title }} </h2>
-    {% for item in items %}
-      <div class="card">
-        <div class="card-header" id="{{ item.id }}">
-          <h5 class="mb-0">
-            <button class="btn btn-link" data-toggle="collapse" data-target="#{{ item.id }}" aria-expanded="true" aria-controls="{{ item.id }}">
-                {{ item.title }}
-            </button>
-              {%  if item.favorite %}
-                  <button type="button" title="Unfavorite" class="btn btn-default btn-lg favorite" data-id="{{ item.id }}" style="float: right">
-                    <i class="fa fa-star" aria-hidden="true" style="color: gold"></i>
-                  </button>
-              {% else %}
-                  <button type="button" title="Favorite" class="btn btn-default btn-lg favorite" data-id="{{ item.id }}" style="float: right">
-                    <i class="fa fa-star" aria-hidden="true"></i>
-                  </button>
-              {%  endif %}
-          </h5>
-        </div>
-
-        <div id="{{ feed.id }}" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
-          <div class="card-body">
-              <span>{{ item.description | safe}}</span>
-              <p class="card-text"><small>Published at: {{ item.published_at }}</small> <a href="{{ item.link }}"
-                                                                                           class="badge badge-info">Link</a></p>
-            {% if item.commented %}
-                <div class="card border-primary mb-3" style="max-width: 66rem;">
-                  <div class="card-header">Comment</div>
-                  <div class="card-body text-primary">
-                    <p class="card-text">{{ item.comment }}</p>
-                  </div>
+        <h2> {{ feed.title }} </h2>
+        {% for item in items %}
+            <div class="card">
+                <div class="card-header" id="{{ item.id }}">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" data-toggle="collapse" data-target="#{{ item.id }}"
+                                aria-expanded="true" aria-controls="{{ item.id }}">
+                            {{ item.title }}
+                        </button>
+                        {% if item.favorite %}
+                            <button type="button" title="Unfavorite" class="btn btn-default btn-lg unfavorite"
+                                    data-id="{{ item.id }}" style="float: right">
+                                <i class="fa fa-star" aria-hidden="true" style="color: gold"></i>
+                            </button>
+                        {% else %}
+                            <button type="button" title="Favorite" class="btn btn-default btn-lg favorite"
+                                    data-id="{{ item.id }}" style="float: right">
+                                <i class="fa fa-star" aria-hidden="true"></i>
+                            </button>
+                        {% endif %}
+                    </h5>
                 </div>
-              {% else %}
-                <a href="{% url 'add_comment' item.id  %}"><button type="button" class="btn btn-outline-primary">Add commentary</button></a>
-              {% endif %}
 
-              {% if item.read %}
-                <button type="button" class="btn btn-secondary" data-id="{{ item.id }}">Read</button>
-              {% else %}
-                <button type="button" class="btn btn-outline-info read" data-id="{{ item.id }}">Mark as read</button>
-              {% endif %}
-          </div>
-        </div>
-      </div>
-    {%  endfor %}
+                <div id="{{ feed.id }}" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                        <span>{{ item.description | safe }}</span>
+                        <p class="card-text"><small>Published at: {{ item.published_at }}</small> <a
+                                href="{{ item.link }}"
+                                class="badge badge-info">Link</a></p>
+                        {% if item.commented %}
+                            <div class="card border-primary mb-3" style="max-width: 66rem;">
+                                <div class="card-header">Comment</div>
+                                <div class="card-body text-primary">
+                                    <p class="card-text">{{ item.comment }}</p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <a href="{% url 'add_comment' item.id %}">
+                                <button type="button" class="btn btn-outline-primary">Add commentary</button>
+                            </a>
+                        {% endif %}
+
+                        {% if item.read %}
+                            <button type="button" class="btn btn-secondary" data-id="{{ item.id }}">Read</button>
+                        {% else %}
+                            <button type="button" class="btn btn-outline-info read" data-id="{{ item.id }}">Mark as
+                                read
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
-{%  endblock %}
+{% endblock %}
 {% csrf_token %}
-{%  block extra_js %}
+{% block extra_js %}
     <script>
-    $(".read").click(function () {
-        var itemId = $(this).data('id')
-          $.ajax({
+        $(".read").click(function () {
+            var itemId = $(this).data('id')
+            $.ajax({
                 url: '{% url 'mark_item' %}',
                 headers: {
                     "X-CSRFToken": '{{ csrf_token }}'
@@ -71,10 +79,10 @@
                     alert(data.error);
                 }
             });
-    });
-    $(".favorite").click(function () {
-        var itemId = $(this).data('id')
-           $.ajax({
+        });
+        $(".favorite").click(function () {
+            var itemId = $(this).data('id')
+            $.ajax({
                 url: '{% url 'mark_item' %}',
                 headers: {
                     "X-CSRFToken": '{{ csrf_token }}'
@@ -92,6 +100,27 @@
                     alert(data.error);
                 }
             });
-    });
-  </script>
-{%  endblock %}
+        });
+        $(".unfavorite").click(function () {
+            var itemId = $(this).data('id')
+            $.ajax({
+                url: '{% url 'mark_item' %}',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                method: "POST",
+                data: {
+                    "item_id": itemId,
+                    "kind": "unfavorite",
+                },
+                dataType: 'json',
+                success: function (data) {
+                    alert(data.message);
+                },
+                error: function (data) {
+                    alert(data.error);
+                }
+            });
+        });
+    </script>
+{% endblock %}

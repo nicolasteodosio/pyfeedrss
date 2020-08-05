@@ -95,6 +95,53 @@ def test_mark_as_kind_view_kind_favorite(logged_client):
     )
 
 
+def test_mark_as_kind_view_kind_unfavorite(logged_client):
+    user_id_ = int(logged_client.session._session["_auth_user_id"])
+    item = baker.make(Item)
+    baker.make(
+        UserRelItem,
+        kind=UserRelItemKind.favorite,
+        user_id=user_id_,
+        disabled_at=None,
+        item=item,
+    )
+    response = logged_client.post(
+        resolve_url("mark_item"), data={"item_id": item.id, "kind": "unfavorite"}
+    )
+    assert response.status_code == 200
+    assert response.resolver_match.url_name == "mark_item"
+    assert response.json()["message"] == "The item was marked as unfavorite."
+    assert (
+        0
+        == UserRelItem.objects.filter(
+            user_id=user_id_,
+            item_id=item.id,
+            kind=UserRelItemKind.favorite,
+            disabled_at__isnull=True,
+        ).count()
+    )
+
+
+def test_mark_as_kind_view_kind_unfavorite_no_fav_exists(logged_client):
+    user_id_ = int(logged_client.session._session["_auth_user_id"])
+    item = baker.make(Item)
+    response = logged_client.post(
+        resolve_url("mark_item"), data={"item_id": item.id, "kind": "unfavorite"}
+    )
+    assert response.status_code == 200
+    assert response.resolver_match.url_name == "mark_item"
+    assert response.json()["message"] == "The item was marked as unfavorite."
+    assert (
+        0
+        == UserRelItem.objects.filter(
+            user_id=user_id_,
+            item_id=item.id,
+            kind=UserRelItemKind.favorite,
+            disabled_at__isnull=True,
+        ).count()
+    )
+
+
 def test_add_comment_view_unlogged_user(client):
     response = client.get(resolve_url("add_comment", item_id=3))
     assert response.status_code == 302
