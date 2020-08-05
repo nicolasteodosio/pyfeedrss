@@ -155,6 +155,7 @@ DRAMATIQ_BROKER = {
 
 DRAMATIQ_MAX_RETRIES = 3
 
+TASKS_DATE_FORMAT = "%a, %d %b %Y %X %Z"
 # Logging
 
 LOGGING = {

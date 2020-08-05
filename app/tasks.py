@@ -15,8 +15,6 @@ from app.models import Item, Notification
 from app.models.feed import Feed
 from app.models.user_follow_feed import UserFollowFeed
 
-DATE_FORMAT = "%a, %d %b %Y %X %Z"
-
 MAX_RETRIES = settings.DRAMATIQ_MAX_RETRIES
 
 
@@ -131,7 +129,8 @@ def update_feed(feed_id: int, user_id: int) -> None:
             parsed_feed = feedparser.parse(feed.link, etag=feed.etag)
         else:
             parsed_feed = feedparser.parse(
-                feed.link, modified=feed.last_build_date.strftime(DATE_FORMAT)
+                feed.link,
+                modified=feed.last_build_date.strftime(settings.TASKS_DATE_FORMAT),
             )
         if parsed_feed.status == 304:
             return
