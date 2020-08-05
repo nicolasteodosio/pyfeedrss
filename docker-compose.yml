@@ -19,7 +19,7 @@ services:
       - "6379:6379"
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:3-management-alpine
     ports:
       - "15672:15672"
       - "5672:5672"
@@ -47,7 +47,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    command: sh -c "./wait-for.sh postgres:5432 -- python manage.migrate --settings=pyfeedrss.settings.local && python manage.py runserver 0.0.0.0:8000 --settings=pyfeedrss.settings.local"
+    command: sh -c "./wait-for.sh postgres:5432 -- python manage.py migrate --settings=pyfeedrss.settings.local && python manage.py runserver 0.0.0.0:8000 --settings=pyfeedrss.settings.local"
     env_file:
       - ./.env.dev
     links:
