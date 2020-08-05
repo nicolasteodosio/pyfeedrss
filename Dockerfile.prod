@@ -3,7 +3,7 @@ FROM python:3.7-alpine
 RUN apk upgrade && \
   apk add --no-cache --virtual build-dependencies python3-dev linux-headers postgresql-dev make gcc \
   g++ ca-certificates zlib-dev jpeg-dev tiff-dev freetype-dev lcms2-dev musl-dev \
-  libwebp-dev tcl-dev tk-dev libxml2-dev libxslt-dev git && \
+  libwebp-dev tcl-dev tk-dev && \
   rm -rf /var/cache/apk/*
 
 ENV PYTHONDONTWRITEBYTECODE 1
