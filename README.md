@@ -34,9 +34,8 @@
 ### Running dev application ###
 * There are two ways to run this application for development
 * 1:
-    * Change the `.env` value of `DATABASE_URL` and `DRAMATIQ_BROKER_URL` from `localhost` to `postgres` and `rabbitmq` 
     * Run `docker-compose up -d`
-    * The application will be running at: `http://localhost:8000`
+    * The application will be running at: `http://127.0.0.1:8000`
 * 2:
     * Run the `docker-compose up -d postgres redis rabbitmq`
     * If this is your first time, run `python manage.py migrate` or `make run-migrations`
@@ -75,7 +74,12 @@ installed to be able to get static from AWS OR GCP if needed
 * The test coverage of the application can be see at: [COVERAGE](https://coveralls.io/github/nicolasteodosio/pyfeedrss) 
 * This application has integration ready with [SENTRY](https://sentry.io), so any exception will be logged in the tool.
 * The application also has a `CI` using [TRAVIS](https://travis-ci.org/), which can be found at [https://travis-ci.org/github/nicolasteodosio/pyfeedrss](https://travis-ci.org/github/nicolasteodosio/pyfeedrss).
-* I will list here some things I would have liked to have done:
-    * Would use https://github.com/PyCQA/bandit for security check
-    * Add the project to [SonarQube](https://www.sonarqube.org/), to track code smells, bugs etc.
-    * I would pay more attention to django admin, I believe it is an excellent tool.
+
+### Backlog ###
+
+* Look at the [Dramatiq pipelines](https://dramatiq.io/cookbook.html#pipelines)
+* Would use [bandit](https://github.com/PyCQA/bandit) for security check
+* Add the project to [SonarQube](https://www.sonarqube.org/), to track code smells, bugs etc.
+* I would pay more attention to django admin, I just did some simple ones.
+* I would like to make an API using [DRF](https://www.django-rest-framework.org/)
+* Make the Continuos Delivery to deploy automatically when the application  receive a commit at the master branch 
