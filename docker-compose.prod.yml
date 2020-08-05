@@ -9,6 +9,7 @@ services:
     ports:
       - "8000:8000"
     command: sh -c "python manage.py collectstatic --settings=pyfeedrss.settings.prod &&
+                    python manage.py migrate --settings=pyfeedrss.settings.prod &&
                     gunicorn --env DJANGO_SETTINGS_MODULE=pyfeedrss.settings.prod pyfeedrss.wsgi --bind 0.0.0.0:8000 --workers 3"
     env_file:
       - ./.env.prod
