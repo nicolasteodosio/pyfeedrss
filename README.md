@@ -16,7 +16,7 @@
 * Or run `pip install -r requirements/dev.txt` and `pre-commit install`
 
 ### Env files ###
-* First you need to create the `.env` files, theres a `.env.example` that you can fill and then run `make create-envs`.
+* First you need to create the `.env` files, theres a `.env.example` that you can fill it and then run `make create-envs`.
 * It will be created 3 `.env` files: 
     * `.env`
     * `.env.dev`
@@ -67,7 +67,7 @@ installed to be able to get static from AWS OR GCP if needed
 [docs](https://pyfeedrss.readthedocs.io/en/latest)
 
 ### Comments ###
-* Orignally the project's database design was thought with the following structure:
+* Originally the project's database design was thought with the following structure:
     ![image](./DB_model.png)
     * With the addition of the `Notification` table, afterwards. 
 * The application is using [pre-commit](https://pre-commit.com/) git hooks, with `black`, `flake8`, `isort`.
@@ -82,4 +82,4 @@ installed to be able to get static from AWS OR GCP if needed
 * Add the project to [SonarQube](https://www.sonarqube.org/), to track code smells, bugs etc.
 * I would pay more attention to django admin, I just did some simple ones.
 * I would like to make an API using [DRF](https://www.django-rest-framework.org/)
-* Make the Continuos Delivery to deploy automatically when the application  receive a commit at the master branch 
+* Make the Continuous Delivery to deploy automatically when the application receive a commit at the master branch. 
